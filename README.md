@@ -2,4 +2,4 @@
 A ocean map
 
 
-# Wir haben keinne planeten B!
+# Wir haben keinen Planeten B!
