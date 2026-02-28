@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OceanGuardian – Gemeinsam für saubere Ozeane</title>
+  <meta name="description" content="OceanGuardian ist eine WebApp zur Überwachung von Plastik im Meer. Dokumentiere Verschmutzungen, nimm an Cleanup-Events teil und schütze unsere Ozeane.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #030712;
+      --bg2: #0a0f1a;
+      --bg3: #111827;
+      --surface: #1a2332;
+      --surface2: #243044;
+      --accent: #0ea5e9;
+      --accent2: #06b6d4;
+      --accent3: #2dd4bf;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --success: #10b981;
+      --text: #f8fafc;
+      --text2: #94a3b8;
+      --text3: #64748b;
+      --border: rgba(148, 163, 184, 0.1);
+      --gradient: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #2dd4bf 100%);
+      --gradient-warm: linear-gradient(135deg, #ef4444 0%, #f97316 50%, #f59e0b 100%);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    html, body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Animated Background */
+    .bg-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .bg-orbs {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      animation: orbFloat 20s ease-in-out infinite;
+    }
+
+    .orb-1 {
+      width: 600px;
+      height: 600px;
+      background: rgba(14, 165, 233, 0.15);
+      top: -200px;
+      left: -200px;
+      animation-delay: 0s;
+    }
+
+    .orb-2 {
+      width: 500px;
+      height: 500px;
+      background: rgba(45, 212, 191, 0.12);
+      top: 40%;
+      right: -150px;
+      animation-delay: -5s;
+    }
+
+    .orb-3 {
+      width: 400px;
+      height: 400px;
+      background: rgba(239, 68, 68, 0.08);
+      bottom: -100px;
+      left: 30%;
+      animation-delay: -10s;
+    }
+
+    .orb-4 {
+      width: 350px;
+      height: 350px;
+      background: rgba(14, 165, 233, 0.1);
+      top: 60%;
+      left: -100px;
+      animation-delay: -15s;
+    }
+
+    @keyframes orbFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(50px, 30px) scale(1.05); }
+      50% { transform: translate(-30px, 50px) scale(0.95); }
+      75% { transform: translate(20px, -30px) scale(1.02); }
+    }
+
+    /* Grid Pattern Overlay */
+    .bg-grid {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(rgba(14, 165, 233, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(14, 165, 233, 0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      animation: gridMove 30s linear infinite;
+    }
+
+    @keyframes gridMove {
+      0% { background-position: 0 0; }
+      100% { background-position: 60px 60px; }
+    }
+
+    /* Navigation */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      padding: 16px 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(to bottom, rgba(3,7,18,0.95), transparent);
+      backdrop-filter: blur(20px);
+      transition: all 0.4s ease;
+    }
+
+    nav.scrolled {
+      background: rgba(3,7,18,0.98);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 5%;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      background: var(--gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 32px rgba(14, 165, 233, 0.3);
+      animation: logoFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+
+    .logo-text {
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text span {
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 40px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text2);
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 500;
+      transition: color 0.2s;
+      position: relative;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--gradient);
+      transition: width 0.3s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    .nav-btn {
+      padding: 11px 26px;
+      background: var(--gradient);
+      color: #030712;
+      border: none;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      font-family: inherit;
+    }
+
+    .nav-btn:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 12px 40px rgba(14, 165, 233, 0.4);
+    }
+
+    /* Mobile Menu */
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      z-index: 1001;
+    }
+
+    .mobile-menu-btn svg {
+      width: 28px;
+      height: 28px;
+      stroke: var(--text);
+      transition: stroke 0.3s;
+    }
+
+    .mobile-menu-btn:hover svg {
+      stroke: var(--accent);
+    }
+
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(3, 7, 18, 0.98);
+      backdrop-filter: blur(20px);
+      z-index: 999;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .mobile-menu.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .mobile-menu a {
+      color: var(--text);
+      text-decoration: none;
+      font-size: 24px;
+      font-weight: 600;
+      transition: color 0.3s;
+    }
+
+    .mobile-menu a:hover {
+      color: var(--accent);
+    }
+
+    .mobile-menu .nav-btn {
+      margin-top: 20px;
+    }
+
+    /* Hero Section */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 160px 5% 100px;
+      overflow: hidden;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 40px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #fca5a5;
+      margin-bottom: 36px;
+      animation: fadeSlideDown 0.8s ease;
+    }
+
+    @keyframes fadeSlideDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-badge .icon {
+      font-size: 20px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+
+    .hero h1 {
+      font-size: clamp(44px, 9vw, 82px);
+      font-weight: 800;
+      line-height: 1.05;
+      margin-bottom: 32px;
+      letter-spacing: -2px;
+      animation: fadeSlideUp 0.8s ease 0.15s both;
+    }
+
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero h1 .highlight-warm {
+      background: var(--gradient-warm);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradientShift 4s ease infinite;
+      background-size: 200% 200%;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .hero p {
+      font-size: clamp(17px, 2.2vw, 22px);
+      color: var(--text2);
+      max-width: 680px;
+      margin: 0 auto 48px;
+      line-height: 1.8;
+      animation: fadeSlideUp 0.8s ease 0.3s both;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: fadeSlideUp 0.8s ease 0.45s both;
+    }
+
+    .btn {
+      padding: 18px 36px;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--gradient);
+      color: #030712;
+      border: none;
+      box-shadow: 0 8px 32px rgba(14, 165, 233, 0.35);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-4px) scale(1.03);
+      box-shadow: 0 20px 50px rgba(14, 165, 233, 0.5);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 2px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--accent);
+      background: rgba(14, 165, 233, 0.1);
+      transform: translateY(-4px);
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 60px;
+      justify-content: center;
+      margin-top: 80px;
+      flex-wrap: wrap;
+      animation: fadeSlideUp 0.8s ease 0.6s both;
+    }
+
+    .hero-stat {
+      text-align: center;
+      position: relative;
+    }
+
+    .hero-stat::before {
+      content: '';
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 3px;
+      background: var(--gradient);
+      border-radius: 2px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .hero-stat:hover::before {
+      opacity: 1;
+    }
+
+    .hero-stat .number {
+      font-size: 52px;
+      font-weight: 800;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1;
+      transition: transform 0.3s;
+    }
+
+    .hero-stat:hover .number {
+      transform: scale(1.1);
+    }
+
+    .hero-stat .label {
+      font-size: 14px;
+      color: var(--text3);
+      margin-top: 12px;
+    }
+
+    /* Floating Elements */
+    .floating {
+      position: absolute;
+      animation: float 6s ease-in-out infinite;
+      z-index: 0;
+    }
+
+    .floating-1 { top: 18%; left: 3%; animation-delay: 0s; }
+    .floating-2 { top: 55%; right: 5%; animation-delay: 2s; }
+    .floating-3 { bottom: 22%; left: 8%; animation-delay: 4s; }
+
+    .float-icon {
+      width: 50px;
+      height: 50px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      opacity: 0.6;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(5deg); }
+    }
+
+    /* Sections */
+    section {
+      padding: 120px 5%;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 80px;
+    }
+
+    .section-label {
+      display: inline-block;
+      padding: 10px 24px;
+      background: rgba(14, 165, 233, 0.1);
+      border: 1px solid rgba(14, 165, 233, 0.2);
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 800;
+      margin-bottom: 20px;
+      letter-spacing: -1.5px;
+      line-height: 1.15;
+    }
+
+    .section-subtitle {
+      font-size: 18px;
+      color: var(--text2);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Problem Section */
+    .problem-section {
+      background: var(--bg2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .problem-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    }
+
+    .problem-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .problem-content h2 {
+      font-size: clamp(32px, 4vw, 48px);
+      font-weight: 800;
+      margin-bottom: 28px;
+      letter-spacing: -1px;
+      line-height: 1.2;
+    }
+
+    .problem-content h2 span {
+      color: var(--danger);
+    }
+
+    .problem-content > p {
+      font-size: 17px;
+      color: var(--text2);
+      line-height: 1.85;
+      margin-bottom: 24px;
+    }
+
+    .problem-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 48px;
+    }
+
+    .problem-stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .problem-stat:hover {
+      transform: translateY(-8px);
+      border-color: var(--accent);
+      box-shadow: 0 20px 40px rgba(14, 165, 233, 0.15);
+    }
+
+    .problem-stat .number {
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .problem-stat .number.danger { color: var(--danger); }
+    .problem-stat .number.warning { color: var(--warning); }
+    .problem-stat .number.success { color: var(--success); }
+
+    .problem-stat .label {
+      font-size: 13px;
+      color: var(--text3);
+      margin-top: 10px;
+    }
+
+    .problem-image {
+      position: relative;
+      overflow: hidden;
+      border-radius: 24px;
+    }
+
+    .problem-image img {
+      width: 100%;
+      height: 580px;
+      object-fit: cover;
+      object-position: center;
+      transition: transform 0.6s ease;
+    }
+
+    .problem-image:hover img {
+      transform: scale(1.05);
+    }
+
+    .problem-image::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      background: linear-gradient(to top, rgba(3,7,18,0.3), transparent 50%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .problem-image::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 27px;
+      background: var(--gradient);
+      z-index: -1;
+      opacity: 0.4;
+    }
+
+    /* Info Cards */
+    .info-section {
+      background: var(--bg);
+      position: relative;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    .info-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 40px;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .info-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--gradient);
+      transform: scaleX(0);
+      transition: transform 0.4s ease;
+    }
+
+    .info-card:hover {
+      transform: translateY(-12px);
+      border-color: var(--accent);
+      box-shadow: 0 30px 60px rgba(14, 165, 233, 0.2);
+    }
+
+    .info-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .info-card .icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin-bottom: 28px;
+      transition: transform 0.3s;
+    }
+
+    .info-card:hover .icon {
+      transform: scale(1.1) rotate(5deg);
+    }
+
+    .info-card h3 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .info-card p {
+      font-size: 15px;
+      color: var(--text2);
+      line-height: 1.75;
+    }
+
+    /* Facts Section */
+    .facts-section {
+      background: var(--bg2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .facts-section::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      right: -20%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(14, 165, 233, 0.1) 0%, transparent 70%);
+      animation: float 10s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .facts-container {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .facts-image {
+      position: relative;
+      overflow: hidden;
+      border-radius: 28px;
+    }
+
+    .facts-image img {
+      width: 100%;
+      height: 700px;
+      object-fit: cover;
+      object-position: center;
+      transition: transform 0.8s ease;
+    }
+
+    .facts-image:hover img {
+      transform: scale(1.08);
+    }
+
+    .facts-image::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 28px;
+      border: 2px solid var(--border);
+      pointer-events: none;
+    }
+
+    .facts-list {
+      list-style: none;
+    }
+
+    .fact-item {
+      display: flex;
+      gap: 24px;
+      padding: 32px 0;
+      border-bottom: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+
+    .fact-item:hover {
+      padding-left: 16px;
+      background: rgba(14, 165, 233, 0.05);
+      border-radius: 16px;
+    }
+
+    .fact-item:last-child {
+      border-bottom: none;
+    }
+
+    .fact-item .icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+      transition: transform 0.3s;
+    }
+
+    .fact-item:hover .icon {
+      transform: scale(1.15) rotate(10deg);
+    }
+
+    .fact-item .content strong {
+      display: block;
+      font-size: 19px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .fact-item .content span {
+      font-size: 14px;
+      color: var(--text3);
+      line-height: 1.6;
+    }
+
+    /* Why Section */
+    .why-section {
+      background: var(--bg);
+      position: relative;
+    }
+
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+
+    .why-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 36px;
+      text-align: center;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .why-card:hover {
+      transform: translateY(-12px) scale(1.02);
+      border-color: var(--accent);
+      box-shadow: 0 25px 50px rgba(14, 165, 233, 0.2);
+    }
+
+    .why-card .icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      margin: 0 auto 24px;
+      transition: transform 0.4s;
+    }
+
+    .why-card:hover .icon {
+      transform: rotate(15deg) scale(1.1);
+    }
+
+    .why-card h3 {
+      font-size: 19px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .why-card p {
+      font-size: 14px;
+      color: var(--text3);
+      line-height: 1.65;
+    }
+
+    /* Planet Section */
+    .planet-section {
+      background: linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .planet-section::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 1000px;
+      height: 1000px;
+      background: radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, transparent 60%);
+      animation: pulse 8s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+      50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; }
+    }
+
+    .planet-content {
+      max-width: 950px;
+      margin: 0 auto;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .planet-content h2 {
+      font-size: clamp(34px, 5vw, 52px);
+      font-weight: 800;
+      margin-bottom: 28px;
+      letter-spacing: -1px;
+    }
+
+    .planet-content > p {
+      font-size: 18px;
+      color: var(--text2);
+      line-height: 1.85;
+      margin-bottom: 56px;
+    }
+
+    .crisis-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      text-align: left;
+    }
+
+    .crisis-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .crisis-card:hover {
+      transform: translateY(-10px);
+      border-color: var(--danger);
+      box-shadow: 0 25px 50px rgba(239, 68, 68, 0.2);
+    }
+
+    .crisis-card .icon {
+      font-size: 40px;
+      margin-bottom: 20px;
+      display: block;
+      transition: transform 0.3s;
+    }
+
+    .crisis-card:hover .icon {
+      transform: scale(1.15) rotate(-10deg);
+    }
+
+    .crisis-card h3 {
+      font-size: 19px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .crisis-card p {
+      font-size: 14px;
+      color: var(--text3);
+      line-height: 1.65;
+    }
+
+    .big-text {
+      font-size: clamp(26px, 4vw, 38px);
+      font-weight: 700;
+      margin: 72px 0 28px;
+      background: var(--gradient-warm);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.4;
+    }
+
+    .highlight-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 56px;
+      margin-top: 56px;
+      text-align: left;
+      transition: all 0.3s;
+    }
+
+    .highlight-box:hover {
+      border-color: var(--accent);
+      box-shadow: 0 30px 60px rgba(14, 165, 233, 0.15);
+    }
+
+    .highlight-box h3 {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .highlight-box p {
+      font-size: 16px;
+      color: var(--text2);
+      line-height: 1.85;
+    }
+
+    .highlight-box .quote {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-top: 32px;
+      padding-top: 28px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .highlight-box .quote::before {
+      content: '💡';
+      font-size: 32px;
+    }
+
+    /* Action Section */
+    .action-section {
+      background: var(--bg2);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .action-section::before {
+      content: '';
+      position: absolute;
+      top: -30%;
+      left: -20%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, transparent 70%);
+      animation: float 12s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .action-section h2 {
+      font-size: clamp(34px, 5vw, 52px);
+      font-weight: 800;
+      margin-bottom: 24px;
+    }
+
+    .action-section > p {
+      font-size: 18px;
+      color: var(--text2);
+      max-width: 600px;
+      margin: 0 auto 56px;
+    }
+
+    .action-steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      margin-bottom: 64px;
+    }
+
+    .action-step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 44px 36px;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+    }
+
+    .action-step:hover {
+      transform: translateY(-12px) scale(1.03);
+      border-color: var(--accent);
+      box-shadow: 0 30px 60px rgba(14, 165, 233, 0.25);
+    }
+
+    .action-step .number {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      font-weight: 800;
+      color: #030712;
+      margin: 0 auto 28px;
+      transition: transform 0.4s;
+    }
+
+    .action-step:hover .number {
+      transform: scale(1.15) rotate(10deg);
+    }
+
+    .action-step h3 {
+      font-size: 21px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .action-step p {
+      font-size: 14px;
+      color: var(--text3);
+      line-height: 1.65;
+    }
+
+    .webapp-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      padding: 22px 56px;
+      background: var(--gradient);
+      color: #030712;
+      border: none;
+      border-radius: 18px;
+      font-size: 19px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      text-decoration: none;
+      font-family: inherit;
+    }
+
+    .webapp-cta:hover {
+      transform: translateY(-5px) scale(1.03);
+      box-shadow: 0 20px 55px rgba(14, 165, 233, 0.5);
+    }
+
+    .webapp-cta .arrow {
+      font-size: 26px;
+      transition: transform 0.3s;
+    }
+
+    .webapp-cta:hover .arrow {
+      transform: translateX(8px);
+    }
+
+    /* Footer */
+    footer {
+      padding: 64px 5%;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .footer-logo .logo-icon {
+      width: 44px;
+      height: 44px;
+    }
+
+    .footer-logo .logo-text {
+      font-size: 22px;
+    }
+
+    footer p {
+      color: var(--text3);
+      font-size: 15px;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .crisis-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .facts-container {
+        grid-template-columns: 1fr;
+        gap: 48px;
+      }
+
+      .facts-image {
+        order: -1;
+      }
+
+      .facts-image img {
+        height: 500px;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .problem-grid {
+        grid-template-columns: 1fr;
+        gap: 48px;
+      }
+
+      .problem-image {
+        order: -1;
+      }
+
+      .problem-image img {
+        height: 400px;
+      }
+
+      .why-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .action-steps {
+        grid-template-columns: 1fr;
+        max-width: 450px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .crisis-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links, .nav-btn-desktop {
+        display: none;
+      }
+      
+      .mobile-menu-btn, .mobile-menu {
+        display: flex;
+      }
+      
+      .nav-btn {
+        display: inline-flex;
+      }
+
+      .hero-stats {
+        gap: 32px;
+      }
+
+      .hero-stat .number {
+        font-size: 40px;
+      }
+
+      .problem-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .why-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        padding: 140px 5% 80px;
+      }
+
+      .hero h1 {
+        font-size: 36px;
+      }
+
+      section {
+        padding: 80px 5%;
+      }
+
+      .highlight-box {
+        padding: 32px;
+      }
+
+      .highlight-box .quote {
+        font-size: 18px;
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .floating {
+        display: none;
+      }
+
+      .problem-image img {
+        height: 320px;
+      }
+
+      .facts-image img {
+        height: 400px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 {
+        font-size: 30px;
+        letter-spacing: -1px;
+      }
+
+      .hero p {
+        font-size: 16px;
+      }
+
+      .btn {
+        padding: 16px 24px;
+        font-size: 14px;
+      }
+
+      .hero-stats {
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .problem-stat .number {
+        font-size: 36px;
+      }
+
+      .info-card {
+        padding: 28px;
+      }
+
+      .fact-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+      }
+
+      .fact-item .icon {
+        margin: 0 auto;
+      }
+
+      .section-title {
+        font-size: 28px;
+      }
+
+      .crisis-card, .why-card {
+        padding: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="bg-animation">
+    <div class="bg-grid"></div>
+    <div class="bg-orbs">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+      <div class="orb orb-4"></div>
+    </div>
+  </div>
+
+  <nav id="navbar">
+    <a href="#" class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+          <path d="M3 12c0 0 2-4 9-4s9 4 9 4" stroke="#030712" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M3 16c0 0 2-4 9-4s9 4 9 4" stroke="#030712" stroke-width="1.8" stroke-linecap="round" opacity="0.6"/>
+          <circle cx="12" cy="6" r="2" fill="#030712" opacity="0.75"/>
+        </svg>
+      </div>
+      <div class="logo-text">Ocean<span>Guardian</span></div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#problem">Das Problem</a></li>
+      <li><a href="#fakten">Fakten</a></li>
+      <li><a href="#handeln">Mitmachen</a></li>
+    </ul>
+    <a href="https://lere-q.github.io/ocean-guardian/" target="_blank" class="nav-btn">
+      App öffnen
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+    </a>
+    <button class="mobile-menu-btn" onclick="toggleMenu()">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+        <path d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#problem" onclick="toggleMenu()">Das Problem</a>
+    <a href="#fakten" onclick="toggleMenu()">Fakten</a>
+    <a href="#handeln" onclick="toggleMenu()">Mitmachen</a>
+    <a href="https://lere-q.github.io/ocean-guardian/" target="_blank" class="nav-btn" onclick="toggleMenu()">
+      App öffnen
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+    </a>
+  </div>
+
+  <!-- Hero -->
+  <section class="hero">
+    <!-- Floating Elements -->
+    <div class="floating floating-1">
+      <div class="float-icon">🌊</div>
+    </div>
+    <div class="floating floating-2">
+      <div class="float-icon">🐟</div>
+    </div>
+    <div class="floating floating-3">
+      <div class="float-icon">♻</div>
+    </div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="icon">⚠️</span>
+        <span>8 Millionen Tonnen Plastik landen jährlich im Meer</span>
+      </div>
+      <h1>
+        Unsere <span class="highlight-warm">Ozeane</span> ersticken an <span class="highlight-warm">Plastik</span>
+      </h1>
+      <p>
+        Jede Minute landet ein Lastwagen voller Plastik im Meer. Aber es gibt Hoffnung – und du kannst ein Teil der Lösung sein. Erfahre, warum wir jetzt handeln müssen und wie jeder Einzelne einen Unterschied machen kann.
+      </p>
+      <div class="hero-buttons">
+        <a href="#problem" class="btn btn-primary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          Problem verstehen
+        </a>
+        <a href="#handeln" class="btn btn-outline">
+          Jetzt handeln
+        </a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="number">8M</div>
+          <div class="label">Tonnen Plastik/Jahr</div>
+        </div>
+        <div class="hero-stat">
+          <div class="number">73%</div>
+          <div class="label">der Ozeane verschmutzt</div>
+        </div>
+        <div class="hero-stat">
+          <div class="number">700+</div>
+          <div class="label">bedrohte Arten</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem Section -->
+  <section class="problem-section" id="problem">
+    <div class="problem-grid">
+      <div class="problem-content">
+        <span class="section-label">Die Krise</span>
+        <h2>Ein <span>stilles Desaster</span> vor unserer Haustür</h2>
+        <p>Die Ozeane bedecken 71% unserer Erde und produzieren über 50% des Sauerstoffs, den wir atmen. Doch sie sind in Gefahr. Plastik durchdringt jeden Winkel unserer Meere – von den tiefsten Gräben bis zu den entlegensten Stränden.</p>
+        <p>Das Plastik zerbricht nicht – es wird nur kleiner. Mikroplastik ist heute überall: im Wasser, im Sand, in Fischen und sogar in unserem Blut. Die Wissenschaft warnt: Wenn wir nicht handeln, wird es 2050 mehr Plastik als Fische im Meer geben.</p>
+        <div class="problem-stats">
+          <div class="problem-stat">
+            <div class="number danger">8M</div>
+            <div class="label">Tonnen/Jahr im Meer</div>
+          </div>
+          <div class="problem-stat">
+            <div class="number warning">73%</div>
+            <div class="label">Oberfläche verschmutzt</div>
+          </div>
+          <div class="problem-stat">
+            <div class="number success">700+</div>
+            <div class="label">Arten bedroht</div>
+          </div>
+        </div>
+      </div>
+      <div class="problem-image">
+        <img src="https://images.wiwo.de/RNtnh1SIp0hN/cover/760/507/45/44/0/0/0.5/0.5/recycling-von-elektrogeraeten-wird-ausgeweitet.jpeg" alt="Müll im Meer">
+      </div>
+    </div>
+  </section>
+
+  <!-- Info Cards -->
+  <section class="info-section" id="fakten">
+    <div class="section-header">
+      <span class="section-label">Warum das wichtig ist</span>
+      <h2 class="section-title">Die Plastikkrise betrifft uns alle</h2>
+      <p class="section-subtitle">Von der Luft, die wir atmen, bis zum Wasser, das wir trinken – die Auswirkungen sind real und bereits heute spürbar.</p>
+    </div>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="icon" style="background: rgba(239, 68, 68, 0.15);">🐟</div>
+        <h3>Meereslebewesen sterben</h3>
+        <p>Über 1 Million Meerestiere sterben jedes Jahr an Plastikverschmutzung – durch Ersticken, Verhungern oder Vergiftung. 100% der untersuchten Meeresschildkröten hatten Plastik im Darm.</p>
+      </div>
+      <div class="info-card">
+        <div class="icon" style="background: rgba(245, 158, 11, 0.15);">👶</div>
+        <h3>Mikroplastik in uns</h3>
+        <p>Jeder Mensch nimmt etwa 39 Gramm Plastik pro Jahr zu sich. Mikroplastik wurde bereits in menschlichem Blut, Lungengewebe und sogar in der Plazenta gefunden.</p>
+      </div>
+      <div class="info-card">
+        <div class="icon" style="background: rgba(14, 165, 233, 0.15);">⏱</div>
+        <h3>Abbauzeit: Jahrhunderte</h3>
+        <p>Eine PET-Flasche braucht 450 Jahre, ein Strohhalm 200 Jahre. Alles Plastik, das je produziert wurde, existiert noch irgendwo auf der Erde.</p>
+      </div>
+      <div class="info-card">
+        <div class="icon" style="background: rgba(16, 185, 129, 0.15);">♻</div>
+        <h3>Nur 9% wird recycelt</h3>
+        <p>Der Rest landet in der Umwelt, auf Mülldeponien oder wird verbrannt. Wir produzieren mehr Plastik, als die Erde verkraften kann.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Facts Section -->
+  <section class="facts-section">
+    <div class="facts-container">
+      <div class="facts-list">
+        <span class="section-label">Die Zahlen</span>
+        <h2 class="section-title" style="margin-bottom: 40px;">Warum jede Sekunde zählt</h2>
+        
+        <div class="fact-item">
+          <div class="icon" style="background: rgba(239, 68, 68, 0.15);">🐟</div>
+          <div class="content">
+            <strong>Fische essen Plastik</strong>
+            <span>100% der untersuchten Meeresschildkröten hatten Plastik im Darm</span>
+          </div>
+        </div>
+        
+        <div class="fact-item">
+          <div class="icon" style="background: rgba(245, 158, 11, 0.15);">🩸</div>
+          <div class="content">
+            <strong>Mikroplastik im Blut</strong>
+            <span>Bei 77% der untersuchten Personen wurde Plastik im Blut nachgewiesen</span>
+          </div>
+        </div>
+        
+        <div class="fact-item">
+          <div class="icon" style="background: rgba(14, 165, 233, 0.15);">🏭</div>
+          <div class="content">
+            <strong>Jährlich mehr Plastik</strong>
+            <span>Die Plastikproduktion wird sich bis 2050 vervierfachen</span>
+          </div>
+        </div>
+        
+        <div class="fact-item">
+          <div class="icon" style="background: rgba(16, 185, 129, 0.15);">💔</div>
+          <div class="content">
+            <strong>Es gibt keinen Planeten B</strong>
+            <span>Alles, was wir verlieren – saubere Luft, Trinkwasser, Artenvielfalt – ist unwiederbringlich</span>
+          </div>
+        </div>
+      </div>
+      <div class="facts-image">
+        <img src="https://www.sonnenseite.com/wp-content/uploads/2019/09/Erde_Plastik_smithore.jpg" alt="Erde mit Plastik">
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Act -->
+  <section class="why-section">
+    <div class="section-header">
+      <span class="section-label">Warum handeln</span>
+      <h2 class="section-title">Die Konsequenzen sind real</h2>
+      <p class="section-subtitle">Die Plastikkrise betrifft nicht nur die Natur – sie betrifft uns alle.</p>
+    </div>
+    <div class="why-grid">
+      <div class="why-card">
+        <div class="icon" style="background: rgba(239, 68, 68, 0.15);">🐳</div>
+        <h3>Meereslebewesen sterben</h3>
+        <p>Über 1 Million Meerestiere sterben jedes Jahr an Plastikverschmutzung – durch Ersticken, Verhungern oder Vergiftung.</p>
+      </div>
+      <div class="why-card">
+        <div class="icon" style="background: rgba(245, 158, 11, 0.15);">🧬</div>
+        <h3>Unsere Gesundheit</h3>
+        <p>Mikroplastik wurde bereits in menschlichem Blut, Lungengewebe und sogar in der Plazenta gefunden.</p>
+      </div>
+      <div class="why-card">
+        <div class="icon" style="background: rgba(14, 165, 233, 0.15);">🌊</div>
+        <h3>Ökosysteme kollabieren</h3>
+        <p>Plastik zerstört Korallenriffe, beeinträchtigt die Wasserqualität und stört das gesamte marine Nahrungsnetz.</p>
+      </div>
+      <div class="why-card">
+        <div class="icon" style="background: rgba(16, 185, 129, 0.15);">💰</div>
+        <h3>Wirtschaftsschaden</h3>
+        <p>Die Plastikverschmutzung kostet die Weltwirtschaft jährlich Milliarden – durch Fischverluste, Reinigung und Tourismus.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Planet Section -->
+  <section class="planet-section">
+    <div class="planet-content">
+      <span class="section-label">Wir haben nur diesen einen Planeten</span>
+      <h2 class="section-title">Die Erde steht an einem Scheideweg</h2>
+      <p>Jeden Tag spüren wir die Folgen von Umweltverschmutzung, Klimawandel und Ressourcenknappheit: extreme Wetterlagen, schmelzende Gletscher, brennende Wälder, verschmutzte Meere, Artensterben. Diese Veränderungen sind nicht abstrakt – sie betreffen jeden von uns.</p>
+      
+      <div class="crisis-grid">
+        <div class="crisis-card">
+          <span class="icon">🫁</span>
+          <h3>Unsere Gesundheit</h3>
+          <p>Schadstoffe in der Luft, verunreinigtes Trinkwasser und Pestizide in Lebensmitteln wirken sich direkt auf unser Wohlbefinden aus.</p>
+        </div>
+        <div class="crisis-card">
+          <span class="icon">🍎</span>
+          <h3>Unsere Nahrung</h3>
+          <p>Überfischung, Monokulturen und Klimakatastrophen bedrohen die Versorgung mit gesunden Lebensmitteln.</p>
+        </div>
+        <div class="crisis-card">
+          <span class="icon">🌡</span>
+          <h3>Unsere Zukunft</h3>
+          <p>Steigende Meeresspiegel, Dürren und Naturkatastrophen verändern die Lebensgrundlagen von Millionen Menschen weltweit.</p>
+        </div>
+      </div>
+
+      <div class="big-text">Viele glauben, dass Umweltschutz etwas für „andere" ist – für Regierungen oder große Unternehmen. Doch die Realität ist: jede Handlung zählt, jeder Beitrag macht einen Unterschied.</div>
+
+      <div class="highlight-box">
+        <h3>Warum wir handeln müssen</h3>
+        <p>Wir haben keinen Planeten B. Wenn wir unsere Erde zerstören, gibt es keinen Ersatz. Alles, was wir verlieren – saubere Luft, Trinkwasser, Artenvielfalt – ist unwiederbringlich. Jede Generation hat die Verantwortung, die Erde lebenswert zu hinterlassen. Die Entscheidungen, die wir heute treffen, prägen das Leben unserer Kinder und Enkel. Kleine Veränderungen summieren sich. Wenn jeder Einzelne bewusst handelt, können wir Verschwendung reduzieren, Natur schützen und Ressourcen schonen.</p>
+        <p style="margin-top: 18px;"><strong>Was das für jeden bedeutet:</strong></p>
+        <p style="margin-top: 10px; line-height: 1.9;">Konsum überdenken: bewusster einkaufen, Plastik vermeiden, Energie sparen.<br>
+        Mobilität neu denken: öfter zu Fuß gehen, Fahrrad fahren oder öffentliche Verkehrsmittel nutzen.<br>
+        Ressourcen achten: Wasser, Strom, Lebensmittel – alles hat seinen Preis für die Natur.<br>
+        Mit gutem Beispiel vorangehen: inspirieren, aufklären, andere motivieren.</p>
+        <div class="quote">Jeder von uns kann Teil der Lösung sein – für saubere Luft, für gesunde Meere, für eine Zukunft, die lebenswert bleibt.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Action Section -->
+  <section class="action-section" id="handeln">
+    <span class="section-label">Gemeinsam stark</span>
+    <h2>Du kannst <span style="background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">etwas tun</span></h2>
+    <p>Jeder kleine Beitrag zählt. Hier sind konkrete Wege, wie du sofort helfen kannst:</p>
+    
+    <div class="action-steps">
+      <div class="action-step">
+        <div class="number">1</div>
+        <h3>OceanGuardian nutzen</h3>
+        <p>Dokumentiere Plastikfunde mit der App. Sei das Auge für die Ozeane und hilf, Verschmutzungen zu identifizieren.</p>
+      </div>
+      <div class="action-step">
+        <div class="number">2</div>
+        <h3>Meldung machen</h3>
+        <p>Siehst du Plastik am Strand? Fotografiere und melde es. Deine Meldung hilft, Problemzonen zu identifizieren.</p>
+      </div>
+      <div class="action-step">
+        <div class="number">3</div>
+        <h3>Bewusst leben</h3>
+        <p>Vermeide Einwegplastik, kaufe bewusst ein, nutze wiederverwendbare Produkte. Jede Handlung zählt.</p>
+      </div>
+    </div>
+
+    <a href="https://lere-q.github.io/ocean-guardian/" target="_blank" class="webapp-cta">
+      OceanGuardian WebApp öffnen
+      <span class="arrow">→</span>
+    </a>
+  </section>
+
+  <footer>
+    <div class="footer-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+          <path d="M3 12c0 0 2-4 9-4s9 4 9 4" stroke="#030712" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M3 16c0 0 2-4 9-4s9 4 9 4" stroke="#030712" stroke-width="1.8" stroke-linecap="round" opacity="0.6"/>
+          <circle cx="12" cy="6" r="2" fill="#030712" opacity="0.75"/>
+        </svg>
+      </div>
+      <div class="logo-text">Ocean<span>Guardian</span></div>
+    </div>
+    <p>© 2026 OceanGuardian – Gemeinsam für saubere Ozeane</p>
+  </footer>
+
+  <script>
+    // Mobile Menu Toggle
+    function toggleMenu() {
+      const menu = document.getElementById('mobileMenu');
+      menu.classList.toggle('active');
+      document.body.style.overflow = menu.classList.contains('active') ? 'hidden' : '';
+    }
+
+    // Navbar scroll effect
+    window.addEventListener('scroll', () => {
+      const navbar = document.getElementById('navbar');
+      if (window.scrollY > 50) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+    });
+
+    // Intersection Observer for animations
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, observerOptions);
+
+    // Observe elements for scroll animation
+    document.querySelectorAll('.info-card, .why-card, .crisis-card, .fact-item, .action-step, .problem-stat').forEach(el => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(30px)';
+      el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+      observer.observe(el);
+    });
+  </script>
+</body>
+</html>
