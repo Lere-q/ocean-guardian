@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#070d1a">
+<meta name="description" content="OceanGuardian – Plastik im Meer melden, Meeresschutz verstehen, KI-gestützte Informationen">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>OceanGuardian – Meeresschutz</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070d1a;--bg2:#0b1425;--bg3:#101d33;--card:rgba(255,255,255,0.04);--card2:rgba(255,255,255,0.07);--glass:rgba(11,20,37,0.82);
+  --bd:rgba(120,190,240,0.10);--bd2:rgba(120,190,240,0.18);--bd3:rgba(120,190,240,0.35);
+  --ocean:#22d3ee;--ocean2:#06b6d4;--teal:#2dd4bf;--teal2:#14b8a6;
+  --green:#34d399;--red:#f87171;--orange:#fb923c;--yellow:#fbbf24;--purple:#a78bfa;--pink:#f472b6;
+  --t1:#f1f8ff;--t2:#8bbfd8;--t3:#4a7a94;--t4:#24495e;
+  --grad-brand:linear-gradient(135deg,#06b6d4,#2dd4bf);--grad-hero:linear-gradient(145deg,#050e1c 0%,#091726 40%,#061220 100%);
+  --sh-sm:0 2px 8px rgba(0,0,0,0.4);--sh-md:0 8px 24px rgba(0,0,0,0.5);--sh-lg:0 20px 60px rgba(0,0,0,0.65);
+  --r:18px;--r2:12px;--r3:8px;--nav:72px;--hdr:58px;--f:'Inter','Plus Jakarta Sans',sans-serif;--fm:'JetBrains Mono',monospace;
+}
+html.light{
+  --bg:#f4f9fc;--bg2:#eaf3f9;--bg3:#daeaf4;--card:rgba(255,255,255,0.85);--card2:rgba(255,255,255,0.95);--glass:rgba(244,249,252,0.9);
+  --bd:rgba(0,120,180,0.12);--bd2:rgba(0,120,180,0.2);--bd3:rgba(0,120,180,0.36);
+  --ocean:#0891b2;--ocean2:#0e7490;--teal:#0d9488;--teal2:#0f766e;--green:#059669;--red:#dc2626;--orange:#ea580c;--yellow:#ca8a04;--purple:#7c3aed;
+  --t1:#0c1e30;--t2:#255a78;--t3:#5890aa;--t4:#94c0d4;--grad-hero:linear-gradient(145deg,#e0f2fe 0%,#e8f7fb 40%,#d6eef8 100%);
+}
+html.light .hdr{background:rgba(244,249,252,.96)!important;}
+html.light .bnav{background:rgba(244,249,252,.97)!important;}
+html.light .leaflet-popup-content-wrapper{background:rgba(255,255,255,.98)!important;}
+html.light .leaflet-control-zoom a{background:#fff!important;color:var(--t1)!important;border-color:var(--bd2)!important;}
+html.light .leaflet-control-attribution{background:rgba(244,249,252,.88)!important;}
+html.light #splash{background:linear-gradient(165deg,#c0e4f5,#daf0fb,#b8ddf0);}
+html.light .acc-ct{color:var(--t2);}
+html.light .inp{background:rgba(255,255,255,.9);}
+html.light .msrch,.html.light .cinp{background:rgba(255,255,255,.9);}
+
+.theme-toggle{width:36px;height:36px;border-radius:11px;flex-shrink:0;background:var(--card);border:1px solid var(--bd2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .22s;backdrop-filter:blur(8px);}
+.theme-toggle:active{transform:scale(.88)}
+.theme-toggle svg{transition:all .35s cubic-bezier(.34,1.56,.64,1)}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;font-family:var(--f);background:var(--bg);color:var(--t1);-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+button,input,select,textarea{font-family:var(--f)}
+
+#splash{position:fixed;inset:0;z-index:9999;background:radial-gradient(ellipse at 30% 40%,#0c2040 0%,#070d1a 60%,#050912 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .7s cubic-bezier(.4,0,.2,1),transform .7s cubic-bezier(.4,0,.2,1);}
+#splash.out{opacity:0;transform:scale(1.06);pointer-events:none}
+.spl-mark{width:92px;height:92px;border-radius:28px;background:linear-gradient(145deg,#06b6d4,#2dd4bf);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 16px rgba(45,212,191,.06),0 0 0 32px rgba(45,212,191,.03),0 24px 48px rgba(6,182,212,.3);animation:spl-pulse 2.4s ease infinite;}
+@keyframes spl-pulse{0%,100%{box-shadow:0 0 0 16px rgba(45,212,191,.06),0 0 0 32px rgba(45,212,191,.03),0 24px 48px rgba(6,182,212,.3)}50%{box-shadow:0 0 0 22px rgba(45,212,191,.1),0 0 0 44px rgba(45,212,191,.05),0 28px 56px rgba(6,182,212,.4)}}
+.spl-name{font-size:28px;font-weight:900;letter-spacing:-.8px;font-family:'Plus Jakarta Sans',sans-serif}
+.spl-name span{background:linear-gradient(135deg,#22d3ee,#2dd4bf);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.spl-tag{font-size:11px;color:var(--t3);letter-spacing:3px;text-transform:uppercase;font-weight:600}
+.spl-bar{width:140px;height:2px;background:rgba(255,255,255,.06);border-radius:10px;overflow:hidden;margin-top:8px}
+.spl-fill{height:100%;width:0;background:linear-gradient(90deg,var(--ocean2),var(--teal));border-radius:10px;animation:spl-fill 2.4s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes spl-fill{to{width:100%}}
+
+#app{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+
+.hdr{height:var(--hdr);flex-shrink:0;z-index:100;background:rgba(7,13,26,.9);border-bottom:1px solid var(--bd);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);display:flex;align-items:center;gap:11px;padding:0 16px;}
+.hdr-logo{width:36px;height:36px;border-radius:12px;flex-shrink:0;background:var(--grad-brand);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(6,182,212,.35);}
+.hdr-title{font-size:17px;font-weight:900;flex:1;letter-spacing:-.4px;color:var(--t1);font-family:'Plus Jakarta Sans',sans-serif;}
+.hdr-title em{background:var(--grad-brand);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-style:normal;}
+.hdr-pill{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:20px;background:var(--card);border:1px solid var(--bd2);font-size:11px;font-weight:700;color:var(--t2);cursor:pointer;transition:all .2s;backdrop-filter:blur(8px);}
+.hdr-pill:active{background:var(--card2)}
+.hdr-btn{width:36px;height:36px;border-radius:11px;flex-shrink:0;background:var(--card);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .18s;backdrop-filter:blur(8px);}
+.hdr-btn:active{background:var(--card2);transform:scale(.9)}
+
+.content{flex:1;overflow:hidden;position:relative}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;opacity:0;pointer-events:none;transform:translateY(10px);transition:opacity .2s ease,transform .2s ease;padding-bottom:calc(var(--nav) + 10px);-webkit-overflow-scrolling:touch;}
+.screen.on{opacity:1;pointer-events:all;transform:translateY(0)}
+.screen::-webkit-scrollbar{width:2px}
+.screen::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:4px}
+
+.bnav{height:var(--nav);flex-shrink:0;z-index:100;background:rgba(7,13,26,.94);border-top:1px solid var(--bd);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);display:flex;align-items:center;padding:0 8px calc(env(safe-area-inset-bottom,0px) + 4px);gap:2px;}
+.bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:7px 0;cursor:pointer;border-radius:14px;transition:all .2s cubic-bezier(.34,1.56,.64,1);position:relative;user-select:none;}
+.bni:active{transform:scale(.88)}
+.bni svg{width:22px;height:22px;transition:all .28s;stroke:var(--t3)}
+.bni span{font-size:10px;font-weight:700;color:var(--t3);transition:color .2s;letter-spacing:.2px}
+.bni.on{background:rgba(34,211,238,.07)}
+.bni.on svg{stroke:var(--ocean);filter:drop-shadow(0 0 4px rgba(34,211,238,.4))}
+.bni.on span{color:var(--ocean)}
+
+.p14{padding:14px 14px 0}
+.sh{font-size:10px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--t3);display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.sh::before{content:'';width:3px;height:12px;background:linear-gradient(180deg,var(--ocean),var(--teal));border-radius:4px;flex-shrink:0;}
+
+.card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);backdrop-filter:blur(12px);transition:all .2s;}
+.card.tap:active{background:var(--card2);transform:scale(.975)}
+
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.3px;}
+.chip-r{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.22)}
+.chip-o{background:rgba(251,146,60,.11);color:var(--orange);border:1px solid rgba(251,146,60,.2)}
+.chip-g{background:rgba(52,211,153,.1);color:var(--green);border:1px solid rgba(52,211,153,.18)}
+.chip-b{background:rgba(34,211,238,.1);color:var(--ocean);border:1px solid rgba(34,211,238,.2)}
+.chip-p{background:rgba(167,139,250,.1);color:var(--purple);border:1px solid rgba(167,139,250,.18)}
+.chip-t{background:rgba(45,212,191,.1);color:var(--teal);border:1px solid rgba(45,212,191,.2)}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;border:none;border-radius:var(--r2);cursor:pointer;font-size:14px;font-weight:700;transition:all .2s cubic-bezier(.34,1.56,.64,1);letter-spacing:-.1px;}
+.btn:active{transform:scale(.94)}
+.btn-pri{background:var(--grad-brand);color:#000;padding:14px;box-shadow:0 4px 16px rgba(6,182,212,.3);}
+.btn-pri:active{box-shadow:none}
+.btn-sec{background:var(--card);color:var(--t1);border:1px solid var(--bd2);padding:12px}
+.btn-red{background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.2);padding:12px}
+.btn-w{width:100%}
+
+.inp{width:100%;background:rgba(255,255,255,.04);border:1.5px solid var(--bd);border-radius:var(--r2);padding:12px 14px;color:var(--t1);font-size:14px;outline:none;transition:border-color .2s,background .2s;appearance:none;}
+.inp:focus{border-color:var(--teal);background:rgba(255,255,255,.06)}
+.inp::placeholder{color:var(--t4)}
+.inp-l{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block}
+.fg{margin-bottom:14px}
+
+.toast{position:fixed;bottom:calc(var(--nav) + 14px);left:50%;transform:translateX(-50%) translateY(12px);background:rgba(255,255,255,.1);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.15);color:var(--t1);padding:10px 20px;border-radius:40px;font-size:12px;font-weight:600;z-index:600;opacity:0;pointer-events:none;transition:all .28s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;max-width:calc(100vw - 40px);text-align:center;}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.hero{margin:12px 14px 12px;background:var(--grad-hero);border:1px solid var(--bd2);border-radius:22px;padding:20px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:-1px;border-radius:23px;background:linear-gradient(145deg,rgba(34,211,238,.06),transparent 60%);pointer-events:none;}
+.hero::after{content:'';position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(45,212,191,.07),transparent 70%);pointer-events:none;}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.8px;color:var(--teal);margin-bottom:10px;}
+.hero-tag::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--teal);animation:lb-p 2s ease infinite}
+.hero-h{font-size:23px;font-weight:900;line-height:1.12;margin-bottom:8px;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-.5px}
+.hero-h span{background:linear-gradient(135deg,#22d3ee,#2dd4bf);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:13px;color:var(--t2);line-height:1.6;font-weight:400}
+
+.loc-bar{margin:0 14px 12px;background:var(--card);border:1px solid var(--bd2);border-radius:var(--r);padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .18s;position:relative;}
+.loc-bar:active{background:var(--card2)}
+.loc-icon{width:34px;height:34px;border-radius:10px;flex-shrink:0;background:rgba(6,214,160,.12);border:1px solid rgba(6,214,160,.2);display:flex;align-items:center;justify-content:center}
+.loc-text{flex:1}
+.loc-name{font-size:14px;font-weight:700;color:var(--t1)}
+.loc-coords{font-size:10px;color:var(--t3);font-family:var(--fm);margin-top:1px}
+.loc-change{font-size:11px;font-weight:600;color:var(--ocean);flex-shrink:0}
+
+.wx{margin:0 14px 12px;background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:13px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.wx-i{text-align:center}
+.wx-v{font-size:17px;font-weight:800;font-family:var(--fm);color:var(--ocean);line-height:1}
+.wx-l{font-size:9px;color:var(--t3);margin-top:3px;font-weight:600;letter-spacing:.3px}
+
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 14px 12px}
+.sc{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:16px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;backdrop-filter:blur(12px);}
+.sc:active{background:var(--card2);transform:scale(.965)}
+.sc-top{position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px}
+.sc-n{font-size:30px;font-weight:900;font-family:var(--fm);line-height:1;letter-spacing:-1px}
+.sc-l{font-size:11px;color:var(--t3);margin-top:5px;font-weight:600;letter-spacing:.2px}
+
+.qg{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:0 14px 12px}
+.qi{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:13px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:all .2s cubic-bezier(.34,1.56,.64,1);backdrop-filter:blur(10px);}
+.qi:active{background:var(--card2);transform:scale(.91)}
+.qi-ico{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.qi-l{font-size:10px;font-weight:700;color:var(--t2);text-align:center;line-height:1.3;letter-spacing:-.1px}
+
+.feed-wrap{margin:0 14px;border-radius:var(--r);overflow:hidden;border:1px solid var(--bd);background:var(--card)}
+.fi{display:flex;gap:11px;align-items:flex-start;padding:12px 13px;border-bottom:1px solid var(--bd)}
+.fi:last-child{border-bottom:none}
+.fi-ico{width:38px;height:38px;flex-shrink:0;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.fi-c{flex:1;min-width:0}
+.fi-t{font-size:13px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fi-m{font-size:11px;color:var(--t3)}
+.fi-tm{font-size:10px;color:var(--t4);margin-top:3px;font-family:var(--fm)}
+
+.impact-bar{margin:0 14px 12px;background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:15px;}
+.ib-hdr{display:flex;justify-content:space-between;margin-bottom:8px}
+.ib-ttl{font-size:13px;font-weight:700}
+.ib-val{font-size:12px;font-weight:700;color:var(--teal);font-family:var(--fm)}
+.ib-track{height:7px;background:var(--bg3);border-radius:10px;overflow:hidden;margin-bottom:12px}
+.ib-fill{height:100%;border-radius:10px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+
+#mapScreen{padding-bottom:0}
+#mapScreen .mi{display:flex;flex-direction:column;height:100%}
+.map-top{padding:9px 12px;background:rgba(10,22,40,.96);border-bottom:1px solid var(--bd);flex-shrink:0;backdrop-filter:blur(10px);display:flex;flex-direction:column;gap:8px;}
+.map-search-row{display:flex;gap:7px;align-items:center;position:relative}
+.msrch{flex:1;background:var(--bg3);border:1.5px solid var(--bd);border-radius:22px;padding:9px 14px;color:var(--t1);font-size:13px;outline:none;transition:border-color .2s;}
+.msrch:focus{border-color:var(--teal)}
+.msrch::placeholder{color:var(--t4)}
+.msrch-btn{width:36px;height:36px;flex-shrink:0;border-radius:11px;background:var(--card);border:1px solid var(--bd2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .18s;}
+.msrch-btn:active{background:var(--teal);transform:scale(.92)}
+.srch-drop{position:absolute;top:calc(100% + 6px);left:0;right:44px;background:var(--card2);border:1px solid var(--bd2);border-radius:14px;z-index:500;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.5);display:none;max-height:220px;overflow-y:auto;}
+.srch-drop.show{display:block}
+.srch-item{padding:11px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--bd);transition:background .15s;display:flex;align-items:center;gap:8px;}
+.srch-item:last-child{border-bottom:none}
+.srch-item:active{background:var(--bg3)}
+.srch-item-t{font-weight:600;font-size:13px}
+.srch-item-s{font-size:10px;color:var(--t3);margin-top:1px}
+.map-chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px}
+.map-chips::-webkit-scrollbar{display:none}
+.mchip{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer;border:1.5px solid transparent;transition:all .18s;flex-shrink:0;}
+.mchip:active{transform:scale(.94)}
+.mc-r{background:rgba(248,113,113,.1);color:var(--red);border-color:rgba(248,113,113,.22)}.mc-r.on{background:var(--red);color:#fff;border-color:var(--red)}
+.mc-o{background:rgba(251,146,60,.1);color:var(--orange);border-color:rgba(251,146,60,.2)}.mc-o.on{background:var(--orange);color:#fff;border-color:var(--orange)}
+.mc-g{background:rgba(74,222,128,.1);color:var(--green);border-color:rgba(74,222,128,.18)}.mc-g.on{background:var(--green);color:#000;border-color:var(--green)}
+.mc-b{background:rgba(56,189,248,.1);color:var(--ocean);border-color:rgba(56,189,248,.2)}.mc-b.on{background:var(--ocean);color:#000;border-color:var(--ocean)}
+.mc-p{background:rgba(167,139,250,.1);color:var(--purple);border-color:rgba(167,139,250,.18)}.mc-p.on{background:var(--purple);color:#fff;border-color:var(--purple)}
+#map{flex:1;min-height:0}
+.m-fab{position:absolute;right:14px;bottom:calc(var(--nav) + 16px);width:54px;height:54px;border-radius:17px;border:none;background:var(--grad-brand);box-shadow:0 6px 24px rgba(6,182,212,.4),0 2px 8px rgba(0,0,0,.3);display:none;align-items:center;justify-content:center;cursor:pointer;z-index:200;transition:all .2s cubic-bezier(.34,1.56,.64,1);}
+.m-fab:active{transform:scale(.88)}
+.m-fab.show{display:flex}
+.m-loc{position:absolute;right:14px;bottom:calc(var(--nav) + 78px);width:42px;height:42px;border-radius:13px;border:none;background:var(--card2);border:1px solid var(--bd2);box-shadow:0 4px 16px rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;cursor:pointer;z-index:200;transition:all .18s;}
+.m-loc:active{background:var(--teal2);transform:scale(.9)}
+.m-loc.show{display:flex}
+.place-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(10,22,40,.95);border:1.5px solid var(--teal);border-radius:18px;padding:14px 22px;z-index:300;display:none;align-items:center;gap:12px;pointer-events:none;backdrop-filter:blur(14px);}
+.place-hint.show{display:flex}
+.ph-ring{width:34px;height:34px;border-radius:50%;border:2.5px solid var(--teal);display:flex;align-items:center;justify-content:center;animation:ph-pulse 1.1s ease infinite;}
+@keyframes ph-pulse{0%,100%{box-shadow:0 0 0 0 rgba(6,214,160,.4)}50%{box-shadow:0 0 0 8px rgba(6,214,160,0)}}
+.ph-dot{width:9px;height:9px;border-radius:50%;background:var(--teal)}
+.ph-t{font-size:13px;font-weight:700;color:var(--t1)}.ph-s{font-size:10px;color:var(--teal);margin-top:2px}
+.live-badge{position:absolute;left:12px;bottom:calc(var(--nav) + 14px);background:rgba(10,22,40,.92);border:1px solid rgba(6,214,160,.3);border-radius:20px;padding:5px 12px;z-index:200;font-size:10px;font-weight:700;color:var(--teal);display:none;align-items:center;gap:6px;}
+.live-badge.show{display:flex}
+.lb-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:lb-p 2s ease infinite}
+@keyframes lb-p{0%,100%{opacity:1}50%{opacity:.25}}
+
+.leaflet-popup-content-wrapper{background:rgba(11,20,37,.96)!important;border:1px solid rgba(34,211,238,.18)!important;border-radius:18px!important;box-shadow:0 24px 64px rgba(0,0,0,.75)!important;padding:0!important;backdrop-filter:blur(20px)!important;}
+.leaflet-popup-tip-container{display:none}
+.leaflet-popup-content{margin:0!important;font-family:var(--f);min-width:210px}
+.pop{padding:15px}
+.pop-hd{display:flex;gap:11px;align-items:flex-start;margin-bottom:10px}
+.pop-av{width:38px;height:38px;flex-shrink:0;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.pop-ttl{font-size:14px;font-weight:700;color:#f1f8ff;line-height:1.2}
+.pop-src{font-size:10px;font-weight:600;letter-spacing:.4px;margin-top:3px}
+.pop-body{font-size:12px;color:#8bbfd8;line-height:1.65;margin-bottom:9px}
+.pop-ft{border-top:1px solid rgba(120,190,240,.1);padding-top:9px;display:flex;justify-content:space-between;align-items:center}
+.pop-dt{font-size:10px;color:#4a7a94;font-family:var(--fm)}
+.pop-del{background:rgba(248,113,113,.1);color:#f87171;border:1px solid rgba(248,113,113,.18);border-radius:8px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--f);transition:all .18s}
+.pop-del:active{background:var(--red);color:#fff}
+.leaflet-control-zoom a{background:rgba(11,20,37,.9)!important;color:#f1f8ff!important;border:1px solid rgba(120,190,240,.2)!important;backdrop-filter:blur(10px)!important}
+.leaflet-container{background:#a8c8e8!important}
+.leaflet-control-attribution{background:rgba(7,13,26,.75)!important;color:#4a7a94!important;font-size:9px!important}
+.leaflet-control-attribution a{color:#22d3ee!important}
+
+.info-banner{margin:12px 14px 12px;background:linear-gradient(150deg,#0d2236,#102d3e);border:1px solid rgba(56,189,248,.18);border-radius:20px;padding:16px;}
+.acc-wrap{margin:0 14px}
+.acc{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:9px;overflow:hidden}
+.acc-hd{display:flex;align-items:center;gap:11px;padding:14px;cursor:pointer;transition:background .15s}
+.acc-hd:active{background:var(--card2)}
+.acc-ico{width:40px;height:40px;flex-shrink:0;border-radius:13px;display:flex;align-items:center;justify-content:center}
+.acc-tx{flex:1}
+.acc-ttl{font-size:13px;font-weight:700;color:var(--t1)}
+.acc-sub{font-size:10px;color:var(--t3);margin-top:1px}
+.acc-arr{width:18px;height:18px;flex-shrink:0;transition:transform .28s;color:var(--t3)}
+.acc.open .acc-arr{transform:rotate(180deg)}
+.acc-bd{max-height:0;overflow:hidden;transition:max-height .38s cubic-bezier(.4,0,.2,1)}
+.acc.open .acc-bd{max-height:1000px}
+.acc-ct{padding:0 14px 14px;border-top:1px solid var(--bd);font-size:13px;color:var(--t2);line-height:1.7}
+.acc-ct p{margin-bottom:8px}.acc-ct p:last-child{margin-bottom:0}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:11px 0}
+.fb{background:var(--bg3);border-radius:11px;padding:11px;text-align:center}
+.fb-n{font-size:19px;font-weight:800;font-family:var(--fm)}.fb-l{font-size:10px;color:var(--t3);margin-top:3px}
+.tip-r{display:flex;gap:9px;align-items:flex-start;padding:9px;background:var(--bg3);border-radius:11px;margin-bottom:7px}
+.tip-n{width:24px;height:24px;flex-shrink:0;background:linear-gradient(135deg,var(--ocean2),var(--teal));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#000}
+.tip-t{font-size:12px;color:var(--t2);line-height:1.5}.tip-t b{color:var(--t1);display:block;margin-bottom:1px;font-size:13px}
+.db-r{display:flex;align-items:center;gap:9px;padding:8px 9px;background:var(--bg3);border-radius:10px;margin-bottom:6px}
+.db-fill{height:5px;border-radius:5px;flex-shrink:0}.db-l{font-size:12px;color:var(--t2);flex:1}.db-v{font-size:11px;font-weight:700;font-family:var(--fm)}
+.species-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}
+.sp-card{background:var(--bg3);border-radius:11px;padding:10px}.sp-name{font-size:12px;font-weight:700;margin-bottom:3px}.sp-info{font-size:11px;color:var(--t3);line-height:1.4}
+.timeline-item{display:flex;gap:10px;margin-bottom:10px}
+.tl-year{width:48px;flex-shrink:0;font-size:11px;font-weight:700;color:var(--ocean);font-family:var(--fm);padding-top:1px}
+.tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;border:2px solid}
+.tl-line{position:relative}.tl-line::after{content:'';position:absolute;left:4px;top:12px;bottom:-8px;width:1px;background:var(--bd2)}
+.tl-text{font-size:12px;color:var(--t2);line-height:1.5;flex:1}
+
+/* ── CHAT ── */
+#chatScreen{padding-bottom:0}
+#chatScreen .ci{display:flex;flex-direction:column;height:100%}
+.chat-ai-badge{padding:9px 14px;background:rgba(7,13,26,.9);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:9px;flex-shrink:0;backdrop-filter:blur(14px);}
+.ai-status{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--t2)}
+.ai-dot{width:7px;height:7px;border-radius:50%;animation:lb-p 2.2s ease infinite}
+.chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;-webkit-overflow-scrolling:touch}
+.chat-msgs::-webkit-scrollbar{width:2px}.chat-msgs::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:4px}
+.mr{display:flex;gap:9px;align-items:flex-end;animation:mi .24s ease}
+.mr.me{flex-direction:row-reverse}
+@keyframes mi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.mav{width:30px;height:30px;flex-shrink:0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.mav-ai{background:var(--grad-brand);box-shadow:0 3px 10px rgba(6,182,212,.3)}.mav-me{background:linear-gradient(135deg,#4f46e5,#7c3aed)}
+.mw{max-width:86%}
+.mb{padding:11px 14px;border-radius:18px;font-size:13px;line-height:1.65;font-weight:400}
+.mb-ai{background:rgba(255,255,255,.05);border:1px solid var(--bd);border-bottom-left-radius:4px;color:var(--t1);backdrop-filter:blur(10px);}
+.mb-me{background:linear-gradient(135deg,#0ea5e9,#06b6d4);border-bottom-right-radius:4px;color:#fff;box-shadow:0 4px 14px rgba(6,182,212,.3);}
+.mt{font-size:10px;color:var(--t4);margin-top:4px;font-family:var(--fm)}.mr.me .mt{text-align:right}
+.typing{background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:18px;border-bottom-left-radius:4px;padding:12px 16px;display:flex;gap:5px;align-items:center;width:62px;}
+.td{width:7px;height:7px;border-radius:50%;background:var(--ocean);animation:tdb 1.1s ease infinite}
+.td:nth-child(2){animation-delay:.22s}.td:nth-child(3){animation-delay:.44s}
+@keyframes tdb{0%,60%,100%{transform:translateY(0);opacity:.3}30%{transform:translateY(-5px);opacity:1}}
+.sug{padding:8px 14px;display:flex;gap:7px;overflow-x:auto;flex-shrink:0;padding-bottom:6px}
+.sug::-webkit-scrollbar{display:none}
+.sug-c{padding:7px 13px;background:var(--card);border:1px solid var(--bd2);border-radius:20px;font-size:11px;font-weight:600;color:var(--t2);white-space:nowrap;cursor:pointer;flex-shrink:0;transition:all .2s;}
+.sug-c:active{background:var(--ocean2);border-color:var(--ocean2);color:#fff;transform:scale(.92)}
+.chat-ia{padding:10px 14px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));background:rgba(7,13,26,.92);border-top:1px solid var(--bd);display:flex;gap:8px;align-items:flex-end;flex-shrink:0;backdrop-filter:blur(20px);}
+.cinp{flex:1;background:rgba(255,255,255,.05);border:1.5px solid var(--bd);border-radius:20px;padding:11px 15px;color:var(--t1);font-size:13px;outline:none;resize:none;max-height:90px;overflow-y:auto;line-height:1.45;transition:border-color .2s,background .2s;}
+.cinp:focus{border-color:var(--teal);background:rgba(255,255,255,.07)}.cinp::placeholder{color:var(--t4)}
+.sbtn{width:42px;height:42px;flex-shrink:0;border-radius:13px;border:none;background:var(--grad-brand);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 12px rgba(6,182,212,.35);}
+.sbtn:active{transform:scale(.86)}.sbtn:disabled{background:var(--card);box-shadow:none;opacity:.5}
+
+/* AI Error state */
+.ai-error-msg{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:14px;padding:12px 14px;font-size:12px;color:var(--t2);line-height:1.6;}
+.ai-retry-btn{margin-top:8px;padding:6px 14px;border-radius:20px;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2);color:var(--ocean);font-size:11px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .18s;}
+.ai-retry-btn:active{background:var(--ocean);color:#000}
+
+/* ── REPORTS ── */
+.rep-banner{margin:12px 14px 12px;background:linear-gradient(145deg,#0d2236,#0f2a38);border:1px solid rgba(56,189,248,.18);border-radius:20px;padding:16px;display:flex;gap:13px;align-items:center;}
+.rb-ico{width:52px;height:52px;flex-shrink:0;border-radius:16px;background:linear-gradient(135deg,var(--ocean2),var(--teal));display:flex;align-items:center;justify-content:center;}
+.ri{margin:0 14px 9px;background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:13px;display:flex;gap:11px;align-items:flex-start;cursor:pointer;transition:all .18s;}
+.ri:active{background:var(--card2);transform:scale(.98)}
+.ri-ico{width:42px;height:42px;flex-shrink:0;border-radius:13px;display:flex;align-items:center;justify-content:center}
+.ri-info{flex:1;min-width:0}.ri-t{font-size:13px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ri-m{font-size:10px;color:var(--t3);font-family:var(--fm)}.ri-row{display:flex;align-items:center;gap:7px;margin-top:6px}
+.ri-del{margin-left:auto;width:30px;height:30px;border-radius:9px;flex-shrink:0;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.18);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .18s;}
+.ri-del:active{background:var(--red)}
+.rep-empty{text-align:center;padding:44px 20px;color:var(--t3);font-size:13px}
+
+/* ── MODALS ── */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(16px);z-index:800;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .28s;}
+.ov.on{opacity:1;pointer-events:all}
+.sh-{background:rgba(10,18,32,.96);border:1px solid var(--bd2);border-top:1px solid rgba(34,211,238,.15);border-radius:24px 24px 0 0;padding:20px;width:100%;transform:translateY(100%);transition:transform .34s cubic-bezier(.4,0,.2,1);max-height:92dvh;overflow-y:auto;backdrop-filter:blur(24px);}
+.ov.on .sh-{transform:translateY(0)}
+.sh-hdl{width:32px;height:4px;background:var(--bd2);border-radius:10px;margin:0 auto 18px}
+.sh-ttl{font-size:18px;font-weight:800;margin-bottom:16px;color:var(--t1);letter-spacing:-.3px;font-family:'Plus Jakarta Sans',sans-serif;}
+.type-g{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.to{padding:12px 6px;border-radius:14px;border:1.5px solid var(--bd);text-align:center;cursor:pointer;transition:all .2s;font-size:10px;font-weight:700;background:var(--card);backdrop-filter:blur(8px);}
+.to *{pointer-events:none}.to:active{transform:scale(.93)}
+.to svg{width:26px;height:26px;margin:0 auto 6px;display:block}
+.to.sr{border-color:rgba(248,113,113,.35);background:rgba(248,113,113,.08);color:var(--red)}
+.to.so{border-color:rgba(251,146,60,.3);background:rgba(251,146,60,.07);color:var(--orange)}
+.to.sg{border-color:rgba(52,211,153,.28);background:rgba(52,211,153,.06);color:var(--green)}
+.coord-prev{font-size:11px;font-weight:700;color:var(--teal);font-family:var(--fm);background:rgba(45,212,191,.06);border:1px solid rgba(45,212,191,.15);border-radius:10px;padding:9px 13px;margin-bottom:14px;}
+.loc-drop{background:var(--bg3);border:1.5px solid var(--bd);border-radius:var(--r2);margin-top:6px;overflow:hidden;max-height:260px;overflow-y:auto;display:none;}
+.loc-drop.show{display:block}
+.loc-it{padding:11px 14px;border-bottom:1px solid var(--bd);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .15s;}
+.loc-it:last-child{border-bottom:none}.loc-it:active{background:var(--card2)}
+.loc-it-main{font-size:13px;font-weight:600;color:var(--t1)}.loc-it-sub{font-size:10px;color:var(--t3);margin-top:1px}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-dot{display:inline-block;animation:spin 1s linear infinite;transform-origin:center}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="spl-mark">
+    <svg viewBox="0 0 32 32" width="38" height="38" fill="none">
+      <path d="M4 16c0 0 3-6 12-6s12 6 12 6" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+      <path d="M4 21c0 0 3-5 12-5s12 5 12 5" stroke="#000" stroke-width="2.2" stroke-linecap="round" opacity=".6"/>
+      <path d="M8 26c0 0 2-3 8-3s8 3 8 3" stroke="#000" stroke-width="1.8" stroke-linecap="round" opacity=".35"/>
+      <circle cx="16" cy="8" r="3" fill="#000" opacity=".75"/>
+    </svg>
+  </div>
+  <div class="spl-name">Ocean<span>Guardian</span></div>
+  <div class="spl-tag">Protect · Monitor · Act</div>
+  <div class="spl-bar"><div class="spl-fill"></div></div>
+</div>
+
+<div id="app">
+  <header class="hdr">
+    <div class="hdr-logo">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+        <path d="M3 12c0 0 2-4 9-4s9 4 9 4" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M3 16c0 0 2-4 9-4s9 4 9 4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" opacity=".6"/>
+        <circle cx="12" cy="6" r="2" fill="#fff" opacity=".75"/>
+      </svg>
+    </div>
+    <div class="hdr-title">Ocean<em>Guardian</em></div>
+    <div class="hdr-pill" id="hdrWx" onclick="switchTab('home')">
+      <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 2v2M7 10v2M2 7H4M10 7h2M3.64 3.64l1.42 1.42M8.94 8.94l1.42 1.42M3.64 10.36l1.42-1.42M8.94 5.06l1.42-1.42"/><circle cx="7" cy="7" r="2.5"/></svg>
+      <span id="hdrT">--°</span>
+    </div>
+    <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+      <svg id="themeIco" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="var(--t2)" stroke-width="1.7">
+        <path d="M17 12.5A7 7 0 018.5 4a7 7 0 100 12 7 7 0 008.5-3.5z" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="hdr-btn" id="notifBtn" onclick="showToast('Keine neuen Benachrichtigungen')">
+      <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="var(--t2)" stroke-width="1.6">
+        <path d="M10 2a6 6 0 016 6v3l1.5 2.5H2.5L4 11V8a6 6 0 016-6z" stroke-linejoin="round"/>
+        <path d="M8.5 16a1.5 1.5 0 003 0" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </header>
+
+  <div class="content">
+    <!-- HOME -->
+    <div id="homeScreen" class="screen on">
+      <div class="hero">
+        <div class="hero-tag">🌊 Echtzeit-Überwachung</div>
+        <div class="hero-h">Schütze unsere<br><span>Ozeane & Fische</span></div>
+        <div class="hero-sub" style="margin-top:5px">Melde Plastikfunde, verfolge Cleanup-Aktionen und informiere dich mit KI-gestützten Fakten über Meeresumweltschutz.</div>
+      </div>
+      <div class="loc-bar" onclick="openLocModal()">
+        <div class="loc-icon">
+          <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="var(--teal)" stroke-width="1.8"><circle cx="10" cy="8" r="3.5"/><path d="M10 2a6 6 0 016 6c0 5-6 10-6 10S4 13 4 8a6 6 0 016-6z" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="loc-text">
+          <div class="loc-name" id="locName">Standort auswählen</div>
+          <div class="loc-coords" id="locCoords">Tipp für Wetter &amp; Karte</div>
+        </div>
+        <div class="loc-change">Ändern →</div>
+      </div>
+      <div class="wx">
+        <div class="wx-i"><div class="wx-v" id="wxT">--</div><div class="wx-l">Temp °C</div></div>
+        <div class="wx-i"><div class="wx-v" id="wxW">--</div><div class="wx-l">Wind km/h</div></div>
+        <div class="wx-i"><div class="wx-v" id="wxWv">--</div><div class="wx-l">Wellen m</div></div>
+        <div class="wx-i"><div class="wx-v" id="wxS">🌤</div><div class="wx-l">Wetter</div></div>
+      </div>
+      <div class="sg">
+        <div class="sc tap" onclick="switchTab('map')"><div class="sc-top" style="background:linear-gradient(90deg,var(--ocean2),var(--teal))"></div><div class="sc-n" id="sN1" style="color:var(--ocean)">0</div><div class="sc-l">Marker gesamt</div></div>
+        <div class="sc tap" onclick="switchTab('map')"><div class="sc-top" style="background:linear-gradient(90deg,var(--red),var(--orange))"></div><div class="sc-n" id="sN2" style="color:var(--red)">0</div><div class="sc-l">Plastik-Funde</div></div>
+        <div class="sc tap" onclick="switchTab('map')"><div class="sc-top" style="background:linear-gradient(90deg,var(--orange),var(--yellow))"></div><div class="sc-n" id="sN3" style="color:var(--orange)">0</div><div class="sc-l">Aktionen</div></div>
+        <div class="sc tap" onclick="switchTab('map')"><div class="sc-top" style="background:linear-gradient(90deg,var(--green),var(--teal))"></div><div class="sc-n" id="sN4" style="color:var(--green)">0</div><div class="sc-l">Sauber-Zonen</div></div>
+      </div>
+      <div class="p14"><div class="sh">Schnellzugriff</div></div>
+      <div class="qg">
+        <div class="qi" onclick="triggerAdd()"><div class="qi-ico" style="background:rgba(248,113,113,.14)"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="var(--red)" stroke-width="1.8"><circle cx="10" cy="8" r="3"/><path d="M10 2a6 6 0 016 6c0 5-6 10-6 10S4 13 4 8a6 6 0 016-6z"/><path d="M10 6v4M8 8h4" stroke-linecap="round"/></svg></div><div class="qi-l">Fund melden</div></div>
+        <div class="qi" onclick="switchTab('chat')"><div class="qi-ico" style="background:rgba(56,189,248,.12)"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="var(--ocean)" stroke-width="1.8"><path d="M18 10c0 4-3.58 7-8 7a8.6 8.6 0 01-3.5-.74L2 18l1.74-3.5A6.7 6.7 0 012 10C2 6 5.58 3 10 3s8 3 8 7z"/><path d="M7 10h.01M10 10h.01M13 10h.01" stroke-width="2.2" stroke-linecap="round"/></svg></div><div class="qi-l">KI-Assistent</div></div>
+        <div class="qi" onclick="loadOsmBeaches()"><div class="qi-ico" style="background:rgba(6,214,160,.1)"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="var(--teal)" stroke-width="1.8"><path d="M2 14c0 0 3-5 8-5s8 5 8 5" stroke-linecap="round"/><path d="M4 17c0 0 2-3 6-3s6 3 6 3" stroke-linecap="round" opacity=".5"/><circle cx="10" cy="7" r="2.5"/></svg></div><div class="qi-l">Strände OSM</div></div>
+        <div class="qi" onclick="switchTab('info')"><div class="qi-ico" style="background:rgba(167,139,250,.12)"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="var(--purple)" stroke-width="1.8"><circle cx="10" cy="10" r="8"/><path d="M10 9v6M10 7v.5" stroke-linecap="round"/></svg></div><div class="qi-l">Fakten</div></div>
+      </div>
+      <div class="p14"><div class="sh">Globale Bedrohung</div></div>
+      <div class="impact-bar">
+        <div class="ib-hdr"><div class="ib-ttl">🌊 Ozeane mit Plastik verseucht</div><div class="ib-val">73 %</div></div>
+        <div class="ib-track"><div class="ib-fill" style="width:0%;background:linear-gradient(90deg,var(--ocean2),var(--ocean))" data-w="73"></div></div>
+        <div class="ib-hdr"><div class="ib-ttl">🐟 Meeresarten in Gefahr</div><div class="ib-val">700+</div></div>
+        <div class="ib-track"><div class="ib-fill" style="width:0%;background:linear-gradient(90deg,var(--red),var(--orange))" data-w="68"></div></div>
+        <div class="ib-hdr"><div class="ib-ttl">♻️ Plastik tatsächlich recycelt</div><div class="ib-val">9 %</div></div>
+        <div class="ib-track" style="margin-bottom:0"><div class="ib-fill" style="width:0%;background:linear-gradient(90deg,var(--green),var(--teal))" data-w="9"></div></div>
+      </div>
+      <div class="p14" style="margin-top:12px"><div class="sh">Letzte Aktivitäten</div></div>
+      <div class="feed-wrap" id="feed" style="margin-bottom:14px">
+        <div class="fi">
+          <div class="fi-ico" style="background:rgba(56,189,248,.12)"><svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="var(--ocean)" stroke-width="1.6"><circle cx="10" cy="10" r="8"/><path d="M10 7v4M10 12.5v.5" stroke-linecap="round"/></svg></div>
+          <div class="fi-c"><div class="fi-t">App gestartet</div><div class="fi-m">OSPAR-Stationen &amp; Echtzeitdaten geladen</div><div class="fi-tm">Gerade eben</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAP -->
+    <div id="mapScreen" class="screen">
+      <div class="mi">
+        <div class="map-top">
+          <div class="map-search-row">
+            <input class="msrch" id="mapQ" placeholder="Ort suchen…" onkeydown="if(event.key==='Enter')doSearch()" oninput="searchDebounce()">
+            <div class="msrch-btn" onclick="doSearch()"><svg viewBox="0 0 18 18" width="15" height="15" fill="none" stroke="var(--t2)" stroke-width="1.8"><circle cx="7.5" cy="7.5" r="5"/><path d="M12 12l3.5 3.5" stroke-linecap="round"/></svg></div>
+            <div class="srch-drop" id="searchDrop"></div>
+          </div>
+          <div class="map-chips">
+            <div class="mchip mc-r on" data-t="dirty" onclick="toggleChip(this,'dirty')">🚨 Verschmutzung</div>
+            <div class="mchip mc-o on" data-t="event" onclick="toggleChip(this,'event')">🧹 Aktionen</div>
+            <div class="mchip mc-g on" data-t="clean" onclick="toggleChip(this,'clean')">✅ Sauber</div>
+            <div class="mchip mc-b on" data-t="beach" onclick="toggleChip(this,'beach')">🏖 Strände</div>
+            <div class="mchip mc-p on" data-t="monitor" onclick="toggleChip(this,'monitor')">📡 OSPAR</div>
+          </div>
+        </div>
+        <div id="map"></div>
+      </div>
+    </div>
+
+    <!-- INFO -->
+    <div id="infoScreen" class="screen">
+      <div class="info-banner">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);margin-bottom:6px">Wissenschaftliche Fakten</div>
+        <div style="font-size:19px;font-weight:800;margin-bottom:5px;line-height:1.2">Plastik im Meer –<br><em style="color:var(--ocean);font-style:normal">Was du wissen musst</em></div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.55">Alle Daten basieren auf peer-reviewed Studien und OSPAR/UNEP-Berichten.</div>
+      </div>
+      <div class="acc-wrap">
+        <div class="acc" onclick="toggleAcc(this)">
+          <div class="acc-hd"><div class="acc-ico" style="background:rgba(56,189,248,.14)"><svg viewBox="0 0 22 22" width="20" height="20" fill="none" stroke="var(--ocean)" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><circle cx="11" cy="11" r="3.5"/><circle cx="11" cy="11" r="1" fill="var(--ocean)"/></svg></div><div class="acc-tx"><div class="acc-ttl">Was ist Mikroplastik?</div><div class="acc-sub">Definition, Typen, Quellen</div></div><svg class="acc-arr" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 6.5l4.5 5 4.5-5"/></svg></div>
+          <div class="acc-bd"><div class="acc-ct"><p>Mikroplastik bezeichnet Kunststoffpartikel <strong>kleiner als 5 mm</strong>. Die Kategorie umfasst Pellets, Fasern, Fragmente, Filme und Schaumstoffe.</p><div class="fg2"><div class="fb"><div class="fb-n" style="color:var(--red)">51 Bio.</div><div class="fb-l">Partikel in Weltmeeren (GESAMP)</div></div><div class="fb"><div class="fb-n" style="color:var(--orange)">14 Mio. t</div><div class="fb-l">Mikroplastik Meeresböden</div></div><div class="fb"><div class="fb-n" style="color:var(--yellow)">1950</div><div class="fb-l">Erste Plastik-Funde im Ozean</div></div><div class="fb"><div class="fb-n" style="color:var(--purple)">10 nm</div><div class="fb-l">Kleinstes Nanoplastik</div></div></div><p><strong>Primäres Mikroplastik</strong> wird direkt hergestellt: Pellets, Microbeads in Kosmetik, Synthetikfasern. Beim Waschen eines Fleecepullovers werden bis zu <strong>700.000 Fasern</strong> freigesetzt.</p><p><strong>Sekundäres Mikroplastik</strong> entsteht durch UV-Zerfall größerer Plastikteile. Nanoplastik kann Zellmembranen und die Blut-Hirn-Schranke durchdringen.</p></div></div>
+        </div>
+        <div class="acc" onclick="toggleAcc(this)">
+          <div class="acc-hd"><div class="acc-ico" style="background:rgba(74,222,128,.1)"><svg viewBox="0 0 22 22" width="20" height="20" fill="none" stroke="var(--green)" stroke-width="1.8"><path d="M3 14c3-5 5-5 8 0s5 5 8 0"/><path d="M5 17c2-3 3-3 6 0s4 3 6 0" opacity=".5"/></svg></div><div class="acc-tx"><div class="acc-ttl">Auswirkungen auf Meerestiere</div><div class="acc-sub">Fische, Wale, Schildkröten, Vögel</div></div><svg class="acc-arr" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 6.5l4.5 5 4.5-5"/></svg></div>
+          <div class="acc-bd"><div class="acc-ct"><p>Laut IUCN (2021) sind über <strong>700 Meeresarten</strong> direkt durch Plastik bedroht. Plastikverschmutzung wurde bei 44 % aller Seevögel und 22 % aller Wale nachgewiesen.</p><div class="species-grid"><div class="sp-card"><div class="sp-name" style="color:var(--ocean)">🐟 Fische</div><div class="sp-info">50 % kommerzieller Arten haben Plastik im Darm. Blockiert Verdauung, löst falsche Sättigung aus.</div></div><div class="sp-card"><div class="sp-name" style="color:var(--teal)">🐢 Schildkröten</div><div class="sp-info">100 % der untersuchten Meeresschildkröten hatten Plastik im Darm (Schuyler et al., 2014).</div></div><div class="sp-card"><div class="sp-name" style="color:var(--purple)">🐳 Wale</div><div class="sp-info">Cuvier-Wal 2019: 40 kg Plastik im Magen. Verhungert trotz vollem Bauch.</div></div><div class="sp-card"><div class="sp-name" style="color:var(--yellow)">🐦 Seevögel</div><div class="sp-info">Albatrossen füttern Küken Plastik – es riecht nach Fisch (Dimethylsulfid-Effekt).</div></div></div></div></div>
+        </div>
+        <div class="acc" onclick="toggleAcc(this)">
+          <div class="acc-hd"><div class="acc-ico" style="background:rgba(251,146,60,.11)"><svg viewBox="0 0 22 22" width="20" height="20" fill="none" stroke="var(--orange)" stroke-width="1.8"><path d="M11 2l2 7h7l-5.5 4 2 6.5L11 16l-5.5 3.5 2-6.5L2 9h7z"/></svg></div><div class="acc-tx"><div class="acc-ttl">Great Pacific Garbage Patch</div><div class="acc-sub">Fakten zum größten Plastikmüllfeld der Erde</div></div><svg class="acc-arr" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 6.5l4.5 5 4.5-5"/></svg></div>
+          <div class="acc-bd"><div class="acc-ct"><div class="fg2"><div class="fb"><div class="fb-n" style="color:var(--orange)">1,6 Mio.</div><div class="fb-l">km² (≈4× Deutschland)</div></div><div class="fb"><div class="fb-n" style="color:var(--red)">80.000 t</div><div class="fb-l">Plastik-Gesamtmasse</div></div><div class="fb"><div class="fb-n" style="color:var(--yellow)">1,8 Bio.</div><div class="fb-l">Plastikstücke</div></div><div class="fb"><div class="fb-n" style="color:var(--purple)">46 %</div><div class="fb-l">davon Fischernetze</div></div></div><p>Entdeckt 1997 von Charles Moore, wissenschaftlich kartiert 2018 von Lebreton et al. (Scientific Reports). Das Ocean Cleanup Projekt hat seit 2018 über 300 Tonnen Plastik entfernt.</p></div></div>
+        </div>
+        <div class="acc" onclick="toggleAcc(this)">
+          <div class="acc-hd"><div class="acc-ico" style="background:rgba(167,139,250,.11)"><svg viewBox="0 0 22 22" width="20" height="20" fill="none" stroke="var(--purple)" stroke-width="1.8"><rect x="3" y="5" width="16" height="11" rx="2"/><path d="M3 9h16M7 5V3M15 5V3" stroke-linecap="round"/></svg></div><div class="acc-tx"><div class="acc-ttl">Abbauzeiten & Zusammensetzung</div><div class="acc-sub">Warum Plastik für immer bleibt</div></div><svg class="acc-arr" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 6.5l4.5 5 4.5-5"/></svg></div>
+          <div class="acc-bd"><div class="acc-ct"><div class="db-r"><div class="db-fill" style="width:55px;background:var(--orange)"></div><div class="db-l">Plastiktüte</div><div class="db-v" style="color:var(--orange)">10–20 J.</div></div><div class="db-r"><div class="db-fill" style="width:80px;background:var(--orange)"></div><div class="db-l">Strohhalm</div><div class="db-v" style="color:var(--orange)">200 J.</div></div><div class="db-r"><div class="db-fill" style="width:105px;background:var(--red)"></div><div class="db-l">PET-Flasche</div><div class="db-v" style="color:var(--red)">450 J.</div></div><div class="db-r" style="margin-bottom:10px"><div class="db-fill" style="width:125px;background:var(--purple)"></div><div class="db-l">Styropor</div><div class="db-v" style="color:var(--purple)">500+ J.</div></div><p>Jedes seit 1950 produzierte Plastikteil existiert noch irgendwo auf der Erde.</p></div></div>
+        </div>
+        <div class="acc" onclick="toggleAcc(this)">
+          <div class="acc-hd"><div class="acc-ico" style="background:rgba(248,113,113,.11)"><svg viewBox="0 0 22 22" width="20" height="20" fill="none" stroke="var(--red)" stroke-width="1.8"><path d="M11 2a7 7 0 100 14 7 7 0 000-14z"/><path d="M8 8h6M8 11h4" stroke-linecap="round"/><path d="M11 16v4M8.5 20h5" stroke-linecap="round"/></svg></div><div class="acc-tx"><div class="acc-ttl">Mikroplastik im menschlichen Körper</div><div class="acc-sub">Neue Forschungsergebnisse 2022–2024</div></div><svg class="acc-arr" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 6.5l4.5 5 4.5-5"/></svg></div>
+          <div class="acc-bd"><div class="acc-ct"><div class="fg2"><div class="fb"><div class="fb-n" style="color:var(--red)">77 %</div><div class="fb-l">Probanden mit Plastik im Blut</div></div><div class="fb"><div class="fb-n" style="color:var(--orange)">39 g</div><div class="fb-l">Plastik schluckt ein Mensch/Jahr</div></div><div class="fb"><div class="fb-n" style="color:var(--yellow)">100 %</div><div class="fb-l">Unters. Plazentas mit Mikroplastik</div></div><div class="fb"><div class="fb-n" style="color:var(--purple)">2024</div><div class="fb-l">Erstnachweis in Herzgewebe</div></div></div><p>Bekannte Effekte: oxidativer Stress, Entzündungsreaktionen, mögliche Einflüsse auf Fertilität und Nervensystem.</p></div></div>
+        </div>
+        <div class="acc" onclick="toggleAcc(this)">
+          <div class="acc-hd"><div class="acc-ico" style="background:rgba(6,214,160,.1)"><svg viewBox="0 0 22 22" width="20" height="20" fill="none" stroke="var(--teal)" stroke-width="1.8"><path d="M4 17c0 0 2-7 7-7s7 7 7 7"/><path d="M11 10V5"/><path d="M8 7l3-2.5L14 7" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="acc-tx"><div class="acc-ttl">Was du sofort tun kannst</div><div class="acc-sub">5 wirksame Maßnahmen mit echtem Impact</div></div><svg class="acc-arr" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 6.5l4.5 5 4.5-5"/></svg></div>
+          <div class="acc-bd"><div class="acc-ct"><div class="tip-r"><div class="tip-n">1</div><div class="tip-t"><b>Mikrofaser-Filter</b>Cora Ball oder PlanetCare-Filter für Waschmaschine – reduziert Fasereintrag um 90 %.</div></div><div class="tip-r"><div class="tip-n">2</div><div class="tip-t"><b>Keine Plastikflaschen</b>1,5L Einwegflaschen enthalten 240.000 Nanopartikel (Columbia 2024). Edelstahltrinkflasche nutzen.</div></div><div class="tip-r"><div class="tip-n">3</div><div class="tip-t"><b>Cleanup-Aktion</b>Ein Strand-Cleanup entfernt 52 kg Plastik pro Person (NABU). Diese App nutzen!</div></div><div class="tip-r"><div class="tip-n">4</div><div class="tip-t"><b>Richtig entsorgen</b>In DE landen nur 36 % des Haushaltsplastiks im Recycling. Gelben Sack korrekt befüllen.</div></div><div class="tip-r"><div class="tip-n">5</div><div class="tip-t"><b>Kosmetik wählen</b>Auf „Polyethylene", „Polypropylene", „Nylon-6" prüfen – Beat the Microbead App hilft.</div></div></div></div>
+        </div>
+      </div>
+      <div style="height:14px"></div>
+    </div>
+
+    <!-- CHAT -->
+    <div id="chatScreen" class="screen">
+      <div class="ci">
+        <div class="chat-ai-badge">
+          <div class="ai-status" id="aiStatus">
+            <div class="ai-dot" id="aiDot" style="background:var(--teal)"></div>
+            <span id="aiLbl">KI-Assistent bereit</span>
+          </div>
+          <div style="margin-left:auto;font-size:10px;color:var(--t3);font-family:var(--fm)" id="aiModel">Claude · Anthropic</div>
+        </div>
+        <div class="chat-msgs" id="chatMsgs">
+          <div class="mr">
+            <div class="mav mav-ai"><svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="#fff" stroke-width="1.5"><path d="M8 2C5 2 3 4 3 7c0 1.4.5 2.7 1.4 3.6L3.5 13l2.5-.9C6.8 12.4 7.4 12.5 8 12.5c3 0 5.5-2 5.5-5.5S11 2 8 2z"/><path d="M5.5 7.5h.01M8 7.5h.01M10.5 7.5h.01" stroke-width="2" stroke-linecap="round"/></svg></div>
+            <div class="mw">
+              <div class="mb mb-ai">👋 Hallo! Ich bin der <strong>OceanGuardian KI-Assistent</strong> – powered by <strong style="color:var(--teal)">Claude (Anthropic)</strong>.<br><br>Ich beantworte wissenschaftlich fundierte Fragen zu 🌊 <strong>Plastik im Meer</strong>, 🐟 <strong>Meerestieren</strong>, ♻️ <strong>Recycling</strong> und Meeresumweltschutz.<br><br>Stelle mir eine Frage!</div>
+              <div class="mt">Jetzt</div>
+            </div>
+          </div>
+        </div>
+        <div class="sug">
+          <div class="sug-c" onclick="sendSug(this)">🔬 Was ist Mikroplastik genau?</div>
+          <div class="sug-c" onclick="sendSug(this)">🐟 Welche Fischarten sind am meisten betroffen?</div>
+          <div class="sug-c" onclick="sendSug(this)">🌊 Wie funktioniert Ocean Cleanup?</div>
+          <div class="sug-c" onclick="sendSug(this)">♻️ Wie wird Plastik richtig recycelt?</div>
+          <div class="sug-c" onclick="sendSug(this)">🧬 Ist Mikroplastik im menschlichen Körper gefährlich?</div>
+          <div class="sug-c" onclick="sendSug(this)">📍 Plastik-Hotspots in Deutschland?</div>
+          <div class="sug-c" onclick="sendSug(this)">💡 Was sind POPs und wie gefährlich sind sie?</div>
+          <div class="sug-c" onclick="sendSug(this)">🏭 Wie viel Plastik wird weltweit produziert?</div>
+        </div>
+        <div class="chat-ia">
+          <textarea class="cinp" id="cinp" placeholder="Frage zu Plastik, Meeren, Fischen…" rows="1" onkeydown="ck(event)" oninput="ri(this)"></textarea>
+          <button class="sbtn" id="sbtn" onclick="sendChat()">
+            <svg viewBox="0 0 18 18" width="15" height="15" fill="none"><path d="M2.5 9L15 3.5l-6 5.5 6 5.5-12.5-5.5z" fill="#fff"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div id="reportScreen" class="screen">
+      <div class="rep-banner">
+        <div class="rb-ico"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#000" stroke-width="2.2"><path d="M9 19V6l2-3 2 3v4l3-2v8M3 19h18" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div><div style="font-size:17px;font-weight:800;margin-bottom:2px">Meine Meldungen</div><div style="font-size:12px;color:var(--t2)">Lokal gespeichert, jederzeit abrufbar</div></div>
+      </div>
+      <div class="sg" style="margin-bottom:12px">
+        <div class="sc" style="padding:12px"><div class="sc-top" style="background:var(--ocean)"></div><div class="sc-n" id="rN1" style="color:var(--ocean);font-size:24px">0</div><div class="sc-l">Gesamt</div></div>
+        <div class="sc" style="padding:12px"><div class="sc-top" style="background:var(--red)"></div><div class="sc-n" id="rN2" style="color:var(--red);font-size:24px">0</div><div class="sc-l">Plastik</div></div>
+        <div class="sc" style="padding:12px"><div class="sc-top" style="background:var(--orange)"></div><div class="sc-n" id="rN3" style="color:var(--orange);font-size:24px">0</div><div class="sc-l">Aktionen</div></div>
+        <div class="sc" style="padding:12px"><div class="sc-top" style="background:var(--green)"></div><div class="sc-n" id="rN4" style="color:var(--green);font-size:24px">0</div><div class="sc-l">Sauber</div></div>
+      </div>
+      <div style="display:flex;gap:9px;margin:0 14px 13px">
+        <button class="btn btn-pri btn-w" onclick="triggerAdd()"><svg viewBox="0 0 18 18" width="14" height="14" fill="none"><path d="M9 3v12M3 9h12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>Fund melden</button>
+        <button class="btn btn-sec" style="flex:0 0 auto;padding:0 16px" onclick="openShare()"><svg viewBox="0 0 18 18" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 6.5l-4-4-4 4M9 2.5v9M3 14.5h12" stroke-linecap="round"/></svg></button>
+      </div>
+      <div id="repList"></div>
+      <div id="repEmpty" class="rep-empty">
+        <div style="font-size:42px;margin-bottom:10px;opacity:.25">📍</div>
+        Noch keine eigenen Meldungen.<br>Tippe auf <strong style="color:var(--t2)">Fund melden</strong> um zu starten.
+      </div>
+      <div style="height:14px"></div>
+    </div>
+  </div>
+
+  <nav class="bnav">
+    <div class="bni on" id="bni-home" onclick="switchTab('home')"><svg viewBox="0 0 22 22" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11L11 3l8 8M5 9.5V18h4.5v-4h3v4H17V9.5"/></svg><span>Home</span></div>
+    <div class="bni" id="bni-map" onclick="switchTab('map')"><svg viewBox="0 0 22 22" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 19.5L2 17V4l6.5 2.5m0 13L14.5 19M8.5 6.5l6 2.5m0 10V9M14.5 19l5.5-2.5V4L14.5 9"/></svg><span>Karte</span></div>
+    <div class="bni" id="bni-info" onclick="switchTab('info')"><svg viewBox="0 0 22 22" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="9"/><path d="M11 8v.5M11 10.5v6"/></svg><span>Info</span></div>
+    <div class="bni" id="bni-chat" onclick="switchTab('chat')"><svg viewBox="0 0 22 22" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h13a2 2 0 012 2z"/><path d="M7.5 9h.01M11 9h.01M14.5 9h.01"/></svg><span>KI-Chat</span></div>
+    <div class="bni" id="bni-report" onclick="switchTab('report')"><svg viewBox="0 0 22 22" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 19V6l2-3 2 3v4l3-2v8M2.5 19h17"/></svg><span>Berichte</span></div>
+  </nav>
+</div>
+
+<button class="m-fab" id="mfab" onclick="triggerAdd()"><svg viewBox="0 0 22 22" width="22" height="22" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round"><path d="M11 4v14M4 11h14"/></svg></button>
+<button class="m-loc" id="mloc" onclick="flyToLoc()"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round"><circle cx="10" cy="10" r="3.5"/><path d="M10 2v3M10 15v3M2 10h3M15 10h3"/></svg></button>
+<div class="live-badge" id="liveBadge"><div class="lb-dot"></div>Live-Daten aktiv</div>
+<div class="place-hint" id="placeHint">
+  <div class="ph-ring"><div class="ph-dot"></div></div>
+  <div><div class="ph-t">Ort antippen</div><div class="ph-s">Tippe auf die Karte zum Platzieren</div></div>
+</div>
+
+<!-- ADD MARKER MODAL -->
+<div class="ov" id="addOv" onclick="if(event.target===this)closeAdd()">
+  <div class="sh-">
+    <div class="sh-hdl"></div>
+    <div class="sh-ttl">Marker hinzufügen</div>
+    <div class="coord-prev" id="coordPrev">📍 Koordinaten werden geladen…</div>
+    <div class="fg"><span class="inp-l">Typ auswählen</span>
+      <div class="type-g">
+        <div class="to sr" data-t="dirty" onclick="selType(this,'dirty')"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 3L23 21H3Z" stroke-linejoin="round"/><path d="M13 9v6M13 17v1" stroke-linecap="round"/></svg>Verschmutzung</div>
+        <div class="to" data-t="event" onclick="selType(this,'event')"><svg viewBox="0 0 26 26" fill="none" stroke="var(--orange)" stroke-width="2"><circle cx="13" cy="13" r="10"/><path d="M9 13l3.5 3.5 5.5-7" stroke-linecap="round" stroke-linejoin="round"/></svg>Cleanup-Aktion</div>
+        <div class="to" data-t="clean" onclick="selType(this,'clean')"><svg viewBox="0 0 26 26" fill="none" stroke="var(--green)" stroke-width="2"><path d="M13 2l2.5 7.5h7.5l-6 4.5 2.5 7.5L13 17.5l-6.5 4 2.5-7.5-6-4.5H10Z" stroke-linejoin="round"/></svg>Saubere Zone</div>
+      </div>
+    </div>
+    <div class="fg"><span class="inp-l">Titel</span><input class="inp" id="mT" placeholder="z.B. Nordstrand Borkum"></div>
+    <div class="fg"><span class="inp-l">Beschreibung</span><textarea class="inp" id="mD" placeholder="Was hast du beobachtet?" style="resize:none;height:68px"></textarea></div>
+    <div class="fg"><span class="inp-l">Schweregrad</span><select class="inp" id="mS"><option value="low">🟡 Gering</option><option value="medium" selected>🟠 Mittel</option><option value="high">🔴 Hoch</option></select></div>
+    <div style="display:flex;gap:9px">
+      <button class="btn btn-sec btn-w" onclick="closeAdd()">Abbrechen</button>
+      <button class="btn btn-pri btn-w" onclick="confirmAdd()">📍 Setzen</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOCATION MODAL -->
+<div class="ov" id="locOv" onclick="if(event.target===this)closeLoc()">
+  <div class="sh-">
+    <div class="sh-hdl"></div>
+    <div class="sh-ttl">Standort festlegen</div>
+    <div class="fg" style="position:relative">
+      <span class="inp-l">Stadt oder Region eingeben</span>
+      <input class="inp" id="locQ" placeholder="z.B. Hamburg, Sylt, Rostock…" oninput="locSearch()" autocomplete="off">
+      <div class="loc-drop" id="locDrop"></div>
+    </div>
+    <div style="font-size:12px;color:var(--t3);line-height:1.6;margin-top:4px">Dein Standort wird nur lokal verwendet für Kartenmittelpunkt und Wetterdaten. Kein GPS erforderlich.</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   KI-API — Anthropic Claude
+   Läuft direkt im Browser, kein Server nötig,
+   kein CORS-Problem, kein API-Key im Code.
+   ═══════════════════════════════════════════════ */
+const API_URL  = 'https://test.com';
+const AI_MODEL = 'ocean-guard-b1-20b';
+
+/* ═══════════════════════════════════════════════
+   AI SYSTEM PROMPT — Comprehensive Admin Prompt
+   Sets role, boundaries, topics, behavior rules
+   ═══════════════════════════════════════════════ */
+const AI_SYS = `Du bist OceanGuardian AI – ein wissenschaftlich fundierter, pädagogisch wertvoller KI-Assistent spezialisiert auf Meeresumweltschutz. Du wurdest entwickelt für Schüler:innen, Lehrkräfte und Umweltbegeisterte.
+
+DEINE IDENTITÄT & ROLLE:
+- Kompetenter Meeresschutz-Experte mit fundiertem Wissen zu Plastik, Ökologie, Meeresbiologie und Nachhaltigkeit
+- Pädagogischer Begleiter der auf Augenhöhe kommuniziert (schüler-freundlich, aber sachlich und präzise)
+- Motivierender Partner für Umweltengagement
+- Wissenschaftliche Informationsquelle mit Quellenangaben wenn möglich
+
+VERHALTENSREGELN – STRIKT EINHALTEN:
+1. SPRACHE: Antworte IMMER auf Deutsch, klar und altersgerecht verständlich
+2. KEINE SCHÄDLICHEN INHALTE: Niemals diskriminierende, rassistische, sexistische, beleidigende, gewaltverherrlichende oder extremistische Inhalte – unter keinen Umständen, auch nicht auf Umwegen
+3. KEINE SCHIMPFWÖRTER: Verwende keine Beleidigungen und befürworte keine, auch wenn der Nutzer sie verwendet
+4. POLITISCHE NEUTRALITÄT: Politisch neutral bis ökologisch-progressiv. Umwelt- und Klimaschutz aktiv befürworten ist ausdrücklich erwünscht. Keine Parteipolitik, keine politischen Extrempositionen links oder rechts
+5. THEMENFOKUS: Bei unangemessenen, themenfremden oder manipulativen Anfragen freundlich ablehnen und zum Meeresschutz zurückleiten
+6. KEINE GEFÄHRLICHEN INFOS: Keine schädlichen, illegalen, gefährlichen oder irreführenden Informationen – auch nicht wenn als "Experiment" oder "Spaß" geframt
+7. QUELLEN: Nutze echte peer-reviewed Studien und Organisationen (OSPAR, UNEP, GESAMP, AWI, NABU, IUCN etc.) wenn möglich
+8. LÄNGE: Max. 220 Wörter pro Antwort, gut strukturiert mit kurzen Absätzen
+
+HAUPTTHEMEN – NUR DIESE (bleibe strikt dabei):
+🌊 Plastik & Mikroplastik – Quellen, Messung, Verteilung, Auswirkungen
+🐟 Meerestiere & marine Ökosysteme – Artenvielfalt, Nahrungsketten, Bedrohungen
+🌡️ Klimawandel & Ozean – Erwärmung, Versauerung, Korallenbleiche
+♻️ Recycling & Kreislaufwirtschaft – Materialien, Prozesse, was wirklich funktioniert
+🔬 Wissenschaftliche Forschung – aktuelle Studien, Fakten, Zahlen mit Quellen
+🤝 Engagement & Lösungen – individuelle und gesellschaftliche Handlungsoptionen
+📍 Regionale Meeresverschmutzung – Deutschland, Nordsee, Ostsee, Mittelmeer, Weltmeere
+
+BEI UNANGEMESSENEN ANFRAGEN:
+Antworte ruhig, bestimmt und freundlich: "Das liegt leider außerhalb meines Fachgebiets als Meeresschutz-Assistent. Ich helfe dir gerne bei Fragen zu Plastik, Meeresbiologie oder Umweltschutz!"
+
+FORMATIERUNG:
+- Verwende **Fettschrift** für wichtige Fachbegriffe
+- Nutze Emojis sparsam und sinnvoll (max. 3-4 pro Antwort)
+- Kurze Absätze statt langer Listen
+- Zahlen und Statistiken immer mit Quellenangabe`;
+
+/* ═══════════════════════════════════════════════
+   APP STATE
+   ═══════════════════════════════════════════════ */
+const SK = 'og_v4_markers';
+const LK = 'og_v4_location';
+
+let S = {
+  lat:54.5, lng:9.5,
+  locName:null,
+  markers:[],
+  leafRefs:new Map(),
+  filters:{dirty:true,event:true,clean:true,beach:true,monitor:true},
+  selType:'dirty',
+  pendingLL:null,
+  placing:false,
+  previewPin:null,
+  chatHist:[],
+  aiLoading:false
+};
+
+function loadState(){
+  try{const r=localStorage.getItem(SK);if(r)S.markers=JSON.parse(r);}catch(e){}
+  try{const l=localStorage.getItem(LK);if(l){const p=JSON.parse(l);S.lat=p.lat;S.lng=p.lng;S.locName=p.name;}}catch(e){}
+}
+function save(){try{localStorage.setItem(SK,JSON.stringify(S.markers));}catch(e){}}
+function saveLoc(lat,lng,name){
+  S.lat=lat;S.lng=lng;S.locName=name;
+  try{localStorage.setItem(LK,JSON.stringify({lat,lng,name}));}catch(e){}
+  updateLocBar();
+  if(window._map)window._map.setView([lat,lng],10);
+  fetchWeather(lat,lng);
+}
+function updateLocBar(){
+  document.getElementById('locName').textContent=S.locName||'Standort auswählen';
+  document.getElementById('locCoords').textContent=S.locName?`${S.lat.toFixed(4)}, ${S.lng.toFixed(4)}`:'Tipp für Wetter & Karte';
+  document.getElementById('hdrT').textContent=S.locName?(document.getElementById('wxT').textContent||'--')+'°':'--°';
+}
+
+window.addEventListener('load',()=>{
+  loadState();
+  setTimeout(()=>{
+    document.getElementById('splash').classList.add('out');
+    setTimeout(()=>{document.getElementById('splash').remove();boot();},700);
+  },2400);
+});
+
+function boot(){
+  const saved=localStorage.getItem('og_theme');
+  if(saved==='light')applyTheme('light'); else applyTheme('dark');
+  initMap();
+  updateLocBar();
+  if(S.locName)fetchWeather(S.lat,S.lng);
+  animBars();
+  updateStats();
+  updateRepList();
+  addFeed('system','App gestartet','OSPAR-Stationen & Karte geladen');
+}
+
+/* ── THEME ── */
+function toggleTheme(){
+  const isLight=document.documentElement.classList.contains('light');
+  applyTheme(isLight?'dark':'light');
+}
+function applyTheme(mode){
+  const html=document.documentElement;
+  const ico=document.getElementById('themeIco');
+  if(mode==='light'){
+    html.classList.add('light');
+    ico.innerHTML=`<circle cx="10" cy="10" r="4" fill="none" stroke="var(--t2)" stroke-width="1.7"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M13.36 13.36l1.42 1.42M4.22 15.78l1.42-1.42M13.36 6.64l1.42-1.42" stroke="var(--t2)" stroke-width="1.7" stroke-linecap="round"/>`;
+    document.querySelector('meta[name="theme-color"]').content='#f0f6fc';
+    if(window._tileLayer&&window._map){window._map.removeLayer(window._tileLayer);window._tileLayer=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{attribution:'© OSM © CARTO',subdomains:'abcd',maxZoom:19}).addTo(window._map);}
+  } else {
+    html.classList.remove('light');
+    ico.innerHTML=`<path d="M17 12.5A7 7 0 018.5 4a7 7 0 100 12 7 7 0 008.5-3.5z" fill="none" stroke="var(--t2)" stroke-width="1.7" stroke-linejoin="round"/>`;
+    document.querySelector('meta[name="theme-color"]').content='#0a1628';
+    if(window._tileLayer&&window._map){window._map.removeLayer(window._tileLayer);window._tileLayer=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{attribution:'© OSM © CARTO',subdomains:'abcd',maxZoom:19}).addTo(window._map);}
+  }
+  try{localStorage.setItem('og_theme',mode);}catch(e){}
+  showToast(mode==='light'?'☀️ Heller Modus aktiv':'🌙 Dunkler Modus aktiv');
+}
+
+/* ── NAV ── */
+let curTab='home';
+function switchTab(t){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.bni').forEach(b=>b.classList.remove('on'));
+  document.getElementById(t+'Screen').classList.add('on');
+  document.getElementById('bni-'+t).classList.add('on');
+  const fab=document.getElementById('mfab'),loc=document.getElementById('mloc'),badge=document.getElementById('liveBadge');
+  if(t==='map'){fab.classList.add('show');loc.classList.add('show');badge.classList.add('show');setTimeout(()=>{if(window._map)window._map.invalidateSize();},120);}
+  else{fab.classList.remove('show');loc.classList.remove('show');badge.classList.remove('show');setPlacing(false);}
+  curTab=t;
+}
+
+/* ── MAP ── */
+function initMap(){
+  window._map=L.map('map',{center:[S.lat,S.lng],zoom:7,zoomControl:true,attributionControl:true});
+  window._tileLayer=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{attribution:'© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com">CARTO</a>',subdomains:'abcd',maxZoom:19}).addTo(window._map);
+  window._map.on('click',e=>{
+    if(S.placing){
+      S.pendingLL=e.latlng;
+      if(S.previewPin){window._map.removeLayer(S.previewPin);S.previewPin=null;}
+      S.previewPin=L.circleMarker([e.latlng.lat,e.latlng.lng],{radius:11,color:'#06d6a0',weight:2.5,fillColor:'rgba(6,214,160,.2)',fillOpacity:1}).addTo(window._map);
+      setPlacing(false);openAdd();
+    }
+  });
+  addOSPAR();
+  S.markers.forEach(m=>placeLeaf(m));
+}
+function setPlacing(on){S.placing=on;document.getElementById('map').style.cursor=on?'crosshair':'';document.getElementById('placeHint').classList.toggle('show',on);}
+function flyToLoc(){if(!S.locName){showToast('Bitte zuerst Standort festlegen');openLocModal();return;}window._map.flyTo([S.lat,S.lng],11,{duration:1.2});}
+
+function mkIcon(type,isReal=false){
+  const C={dirty:{a:'#f87171',b:'#c94040',glow:'rgba(248,113,113,0.5)',ico:icoAlert()},event:{a:'#fb923c',b:'#d46010',glow:'rgba(251,146,60,0.45)',ico:icoCheck()},clean:{a:'#4ade80',b:'#18a34a',glow:'rgba(74,222,128,0.45)',ico:icoStar()},beach:{a:'#38bdf8',b:'#0c7abf',glow:'rgba(56,189,248,0.45)',ico:icoWave()},monitor:{a:'#a78bfa',b:'#6633cc',glow:'rgba(167,139,250,0.45)',ico:icoMonitor()},user:{a:'#06d6a0',b:'#028c68',glow:'rgba(6,214,160,0.55)',ico:icoUser()}};
+  const c=C[type]||C.dirty;
+  const uid='ic'+Math.random().toString(36).slice(2,6);
+  const rd=isReal?`<circle cx="31" cy="7" r="4.5" fill="#4ade80"/><circle cx="31" cy="7" r="2" fill="#fff"/>`:''
+  const s=`<svg xmlns="http://www.w3.org/2000/svg" width="38" height="50" viewBox="0 0 38 50"><defs><radialGradient id="${uid}g" cx="38%" cy="28%" r="65%"><stop offset="0%" stop-color="${c.a}"/><stop offset="100%" stop-color="${c.b}"/></radialGradient><filter id="${uid}sh" x="-50%" y="-30%" width="200%" height="200%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="rgba(0,0,0,0.45)"/></filter></defs><ellipse cx="19" cy="47.5" rx="7" ry="2.5" fill="rgba(0,0,0,0.35)"/><circle cx="19" cy="19" r="17.5" fill="${c.glow}" opacity=".5" filter="url(#${uid}sh)"/><path d="M19 3C10.2 3 3 10.2 3 19 3 30 19 47 19 47 19 47 35 30 35 19 35 10.2 27.8 3 19 3Z" fill="url(#${uid}g)" filter="url(#${uid}sh)"/><path d="M11 11 C11 9 13 8 15.5 8.5 Q19 7 22.5 9.5 C24.5 11 25 14 23 16 22 17 20 18 19 18 18 18 12 16 11 11Z" fill="rgba(255,255,255,0.16)"/><g transform="translate(7,8)">${c.ico}</g>${rd}</svg>`;
+  return L.divIcon({className:'',html:s,iconSize:[38,50],iconAnchor:[19,47],popupAnchor:[0,-49]});
+}
+function icoAlert(){return`<path d="M12 2L22 20H2Z" stroke="rgba(255,255,255,.95)" stroke-width="2" fill="none" stroke-linejoin="round"/><path d="M12 8v5" stroke="rgba(255,255,255,.95)" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="15.5" r="1.5" fill="rgba(255,255,255,.95)"/>`;}
+function icoCheck(){return`<circle cx="12" cy="12" r="9" stroke="rgba(255,255,255,.9)" stroke-width="2" fill="none"/><path d="M8 12l3.5 3.5L17 8" stroke="rgba(255,255,255,.95)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;}
+function icoStar(){return`<path d="M12 2l2.5 7.5h7.5l-6 4.5 2.5 7.5L12 17.5l-6.5 4 2.5-7.5-6-4.5H9.5Z" stroke="rgba(255,255,255,.9)" stroke-width="1.8" fill="none" stroke-linejoin="round"/>`;}
+function icoWave(){return`<path d="M2 13c0 0 3-6 10-6s10 6 10 6" stroke="rgba(255,255,255,.9)" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M4 17c0 0 2-4 8-4s8 4 8 4" stroke="rgba(255,255,255,.7)" stroke-width="1.5" stroke-linecap="round" fill="none"/><circle cx="12" cy="7" r="3" fill="rgba(255,255,255,.85)"/>`;}
+function icoMonitor(){return`<rect x="3" y="4" width="18" height="12" rx="2.5" stroke="rgba(255,255,255,.9)" stroke-width="2" fill="none"/><path d="M8 20h8M12 16v4" stroke="rgba(255,255,255,.9)" stroke-width="1.8" stroke-linecap="round"/><path d="M6 11l3-4 3 3 3-4" stroke="rgba(255,255,255,.9)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`;}
+function icoUser(){return`<circle cx="12" cy="12" r="4" stroke="rgba(255,255,255,.9)" stroke-width="2" fill="rgba(255,255,255,.15)"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3" stroke="rgba(255,255,255,.8)" stroke-width="1.8" stroke-linecap="round"/>`;}
+
+const OSPAR=[
+  {lat:55.0196,lng:8.4345,name:"Rote Kliff, Sylt",src:"OSPAR CEMP 2023",desc:"Litter Index 312 Teile/100m. Kunststoff-Fragmente 47 %, Fischfangequipment 22 %. Langzeitmonitoring seit 2010.",stn:"DE-SYL-01",yr:2023},
+  {lat:53.714,lng:7.149,name:"Nordstrand Borkum",src:"OSPAR CEMP 2022",desc:"2022: +34 % PET-Flaschen vs. Vorjahr. Haupteintragspfad: Nordseezirkulation.",stn:"DE-BKM-02",yr:2022},
+  {lat:53.714,lng:7.897,name:"Norderney Weststrand",src:"OSPAR CEMP 2023",desc:"Litter Index 189 Teile/100m. Styropor und Pellets dominieren Sediment (NLWKN).",stn:"DE-NDY-01",yr:2023},
+  {lat:54.528,lng:13.648,name:"Thiessow, Rügen",src:"OSPAR/LUNG MV 2022",desc:"Sturmbedingte Einträge 2022. Ostsee-typisch: Pellets aus Industrieunfall Gotlandbecken 2012 noch nachweisbar.",stn:"DE-RGN-03",yr:2022},
+  {lat:54.087,lng:14.276,name:"Zinnowitz, Usedom",src:"OSPAR CEMP 2023",desc:"2023: Erstmals Nanoplastik in Sedimentproben (Uni Greifswald).",stn:"DE-UDM-01",yr:2023},
+  {lat:54.524,lng:8.890,name:"Dageb­üll, Wattenmeer",src:"NABU/OSPAR 2022",desc:"Wattschnecken: Mikroplastik 12 Partikel/g Nassgewicht. Nordsee-Referenzstation.",stn:"DE-DGB-01",yr:2022},
+  {lat:54.378,lng:10.151,name:"Schönberg, Kieler Bucht",src:"CAU Kiel 2023",desc:"CAU Langzeitstudie: 4,2 Partikel/m³ Wasser. Haupttyp: Polystyrol-Fragmente.",stn:"DE-KIL-04",yr:2023},
+  {lat:53.897,lng:14.145,name:"Ueckermünde Ostsee",src:"LUNG MV 2022",desc:"PET-Konzentration erhöht durch Flusseinträge. Fischereigerät-Anteil 32 %.",stn:"DE-UKM-02",yr:2022},
+  {lat:54.226,lng:7.866,name:"Helgoland Düne",src:"AWI/OSPAR 2023",desc:"Alfred-Wegener-Institut Monitoring. Erhöhte Mikroplastikkonzentration in Seevogelmageninhalt.",stn:"DE-HGO-05",yr:2023},
+  {lat:53.861,lng:8.724,name:"Cuxhaven, Elbeästuar",src:"BfG 2022",desc:"Bundesanstalt Gewässerkunde: Elbe transportiert ~190 t Plastik/Tag Richtung Nordsee.",stn:"DE-CUX-06",yr:2022},
+];
+
+function addOSPAR(){
+  OSPAR.forEach(s=>{
+    const m=L.marker([s.lat,s.lng],{icon:mkIcon('monitor',true)}).addTo(window._map);
+    m.bindPopup(buildPop({type:'monitor',title:s.name,desc:s.desc,date:String(s.yr),src:s.src,meta:`Station: ${s.stn}`,isSystem:true}),{maxWidth:250});
+    m.markType='monitor';
+    S.leafRefs.set('ospar_'+s.stn,m);
+  });
+}
+
+function buildPop(m){
+  const T={dirty:{l:'Verschmutzung',bg:'rgba(248,113,113,.14)',c:'var(--red)',ib:'rgba(248,113,113,.22)'},event:{l:'Cleanup-Aktion',bg:'rgba(251,146,60,.13)',c:'var(--orange)',ib:'rgba(251,146,60,.2)'},clean:{l:'Saubere Zone',bg:'rgba(74,222,128,.11)',c:'var(--green)',ib:'rgba(74,222,128,.18)'},beach:{l:'Strand (OSM)',bg:'rgba(56,189,248,.12)',c:'var(--ocean)',ib:'rgba(56,189,248,.2)'},monitor:{l:'OSPAR Monitoring',bg:'rgba(167,139,250,.11)',c:'var(--purple)',ib:'rgba(167,139,250,.18)'},user:{l:'Mein Standort',bg:'rgba(6,214,160,.1)',c:'var(--teal)',ib:'rgba(6,214,160,.18)'}};
+  const t=T[m.type]||T.dirty;
+  const del=m.isSystem?'':`<button class="pop-del" onclick="delM('${m.id}')">Löschen</button>`;
+  return `<div class="pop"><div class="pop-hd"><div class="pop-av" style="background:${t.bg}"><svg viewBox="0 0 18 18" width="15" height="15" fill="none" stroke="${t.c}" stroke-width="1.8"><circle cx="9" cy="7" r="3"/><path d="M9 2a5 5 0 015 5c0 4.5-5 10-5 10S4 11.5 4 7a5 5 0 015-5z" stroke-linejoin="round"/></svg></div><div><div class="pop-ttl">${m.title||'Unbekannt'}</div>${m.src?`<div class="pop-src" style="color:${t.c}">Quelle: ${m.src}</div>`:''}<span class="chip" style="background:${t.bg};color:${t.c};border-color:${t.ib};margin-top:5px;display:inline-flex">${t.l}</span></div></div><div class="pop-body">${m.desc||''}</div><div class="pop-ft"><div class="pop-dt">📅 ${m.date||''} ${m.meta?'· '+m.meta:''}</div>${del}</div></div>`;
+}
+
+function placeLeaf(m){
+  const lm=L.marker([m.lat,m.lng],{icon:mkIcon(m.type)}).addTo(window._map);
+  lm.bindPopup(buildPop(m),{maxWidth:250});
+  lm.markType=m.type;
+  S.leafRefs.set(m.id,lm);
+}
+
+function triggerAdd(){switchTab('map');setTimeout(()=>setPlacing(true),180);}
+function openAdd(){
+  const ll=S.pendingLL;
+  document.getElementById('coordPrev').textContent=ll?`📍 ${parseFloat(ll.lat).toFixed(5)}, ${parseFloat(ll.lng).toFixed(5)}`:'📍 Kartenmitte wird verwendet';
+  document.getElementById('addOv').classList.add('on');
+}
+function closeAdd(){
+  document.getElementById('addOv').classList.remove('on');
+  setPlacing(false);
+  if(S.previewPin){window._map.removeLayer(S.previewPin);S.previewPin=null;}
+  S.pendingLL=null;
+  document.getElementById('mT').value='';
+  document.getElementById('mD').value='';
+}
+function selType(el,t){
+  document.querySelectorAll('.to').forEach(o=>{o.className='to';});
+  el.classList.add({'dirty':'sr','event':'so','clean':'sg'}[t]);
+  S.selType=t;
+}
+function confirmAdd(){
+  const title=document.getElementById('mT').value.trim()||'Unbekannter Ort';
+  const desc=document.getElementById('mD').value.trim()||'';
+  const sev=document.getElementById('mS').value;
+  const ll=S.pendingLL||{lat:S.lat,lng:S.lng};
+  if(S.previewPin){window._map.removeLayer(S.previewPin);S.previewPin=null;}
+  const m={id:'u_'+Date.now(),lat:parseFloat(ll.lat),lng:parseFloat(ll.lng),type:S.selType,title,desc,severity:sev,date:new Date().toLocaleDateString('de-DE'),meta:`${parseFloat(ll.lat).toFixed(4)}, ${parseFloat(ll.lng).toFixed(4)}`,isSystem:false};
+  S.markers.push(m);save();placeLeaf(m);updateStats();updateRepList();
+  addFeed(m.type,m.title,'Von dir gemeldet · '+m.date);
+  closeAdd();
+  window._map.panTo([m.lat,m.lng]);
+  showToast('📍 Marker gesetzt & gespeichert!');
+}
+function delM(id){
+  const lm=S.leafRefs.get(id);
+  if(lm&&window._map)window._map.removeLayer(lm);
+  S.leafRefs.delete(id);
+  S.markers=S.markers.filter(m=>m.id!==id);
+  save();updateStats();updateRepList();
+  showToast('🗑 Marker gelöscht');
+}
+function toggleChip(el,type){
+  el.classList.toggle('on');
+  S.filters[type]=el.classList.contains('on');
+  S.leafRefs.forEach((lm,k)=>{
+    if(lm.markType===type){if(S.filters[type]){if(!window._map.hasLayer(lm))lm.addTo(window._map);}else{if(window._map.hasLayer(lm))window._map.removeLayer(lm);}}
+  });
+}
+
+let _st=null;
+function searchDebounce(){clearTimeout(_st);_st=setTimeout(()=>{const v=document.getElementById('mapQ').value.trim();if(v.length>2)fetchNominatim(v,'searchDrop','map');},420);}
+async function doSearch(){
+  const q=document.getElementById('mapQ').value.trim();if(!q)return;
+  try{const d=await nominatim(q,1);if(!d.length){showToast('Ort nicht gefunden');return;}window._map.flyTo([parseFloat(d[0].lat),parseFloat(d[0].lon)],13,{duration:1.4});showToast('📍 '+d[0].display_name.split(',')[0]);document.getElementById('searchDrop').classList.remove('show');}catch{showToast('Suche nicht verfügbar');}
+}
+async function fetchNominatim(q,dropId,ctx){
+  const d=document.getElementById(dropId);
+  try{
+    const res=await nominatim(q,6);
+    if(!res.length){d.classList.remove('show');return;}
+    d.innerHTML=res.slice(0,6).map(r=>`<div class="srch-item" onclick="selectResult(${r.lat},${r.lon},'${r.display_name.replace(/'/g,"&#39;")}','${ctx}')"><span>📍</span><div><div class="srch-item-t">${r.display_name.split(',')[0]}</div><div class="srch-item-s">${r.display_name.split(',').slice(1,3).join(',')||''}</div></div></div>`).join('');
+    d.classList.add('show');
+  }catch(e){d.classList.remove('show');}
+}
+async function nominatim(q,limit=5){
+  const url=`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=${limit}&accept-language=de`;
+  const r=await fetch(url,{headers:{'User-Agent':'OceanGuardian/2.0'}});
+  return r.json();
+}
+function selectResult(lat,lon,name,ctx){
+  if(ctx==='map'){window._map.flyTo([parseFloat(lat),parseFloat(lon)],13,{duration:1.4});document.getElementById('mapQ').value='';document.getElementById('searchDrop').classList.remove('show');}
+  else if(ctx==='loc'){saveLoc(parseFloat(lat),parseFloat(lon),name.split(',')[0]);closeLoc();showToast('📍 Standort gesetzt: '+name.split(',')[0]);addFeed('user','Standort gesetzt',name.split(',')[0]);}
+}
+
+let _lt=null;
+function openLocModal(){document.getElementById('locOv').classList.add('on');document.getElementById('locQ').value='';document.getElementById('locDrop').classList.remove('show');}
+function closeLoc(){document.getElementById('locOv').classList.remove('on');}
+function locSearch(){
+  clearTimeout(_lt);
+  const v=document.getElementById('locQ').value.trim();
+  if(v.length<2){document.getElementById('locDrop').classList.remove('show');return;}
+  _lt=setTimeout(()=>fetchNominatim(v,'locDrop','loc'),380);
+}
+
+async function fetchWeather(lat,lng){
+  try{
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true&hourly=wave_height&timezone=auto&forecast_days=1`;
+    const r=await fetch(url);if(!r.ok)return;
+    const d=await r.json();
+    const cw=d.current_weather;
+    const wIdx=d.hourly.time?.findIndex(t=>t.slice(0,13)===cw.time?.slice(0,13));
+    const wave=(wIdx>=0&&d.hourly.wave_height)?d.hourly.wave_height[wIdx]:null;
+    const temp=Math.round(cw.temperature),wind=Math.round(cw.windspeed),wh=wave!=null?wave.toFixed(1):'--',code=wmoIcon(cw.weathercode);
+    document.getElementById('wxT').textContent=temp;document.getElementById('wxW').textContent=wind;document.getElementById('wxWv').textContent=wh;document.getElementById('wxS').textContent=code;document.getElementById('hdrT').textContent=temp+'°';
+    addFeed('weather',`${temp}°C · ${wind} km/h Wind`,`Open-Meteo · ${(S.locName||lat.toFixed(2)+', '+lng.toFixed(2))}`);
+  }catch(e){}
+}
+function wmoIcon(c){if(c===0)return'☀️';if(c<=3)return'⛅';if(c<=12)return'🌫️';if(c<=29)return'🌧️';if(c<=49)return'🌫️';if(c<=67)return'🌧️';if(c<=79)return'🌨️';if(c<=82)return'🌦️';if(c<=99)return'⛈️';return'🌡️';}
+
+async function loadOsmBeaches(){
+  if(!S.locName){showToast('Zuerst Standort festlegen');openLocModal();return;}
+  switchTab('map');showToast('🌊 Lade Stranddaten (OpenStreetMap)…');
+  const rad=80000;
+  const q=`[out:json][timeout:25];(node["natural"="beach"](around:${rad},${S.lat},${S.lng});way["natural"="beach"](around:${rad},${S.lat},${S.lng}););out center;`;
+  try{
+    const r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:q});
+    if(!r.ok)throw new Error();
+    const d=await r.json();let cnt=0;
+    d.elements.slice(0,60).forEach(el=>{
+      const bLat=el.lat||el.center?.lat,bLng=el.lon||el.center?.lon;
+      if(!bLat||!bLng)return;
+      const name=el.tags?.name||el.tags?.['name:de']||'Strand',surf=el.tags?.surface?` Oberfläche: ${el.tags.surface}.`:'';
+      const m=L.marker([bLat,bLng],{icon:mkIcon('beach',true)}).addTo(window._map);
+      m.bindPopup(buildPop({type:'beach',title:name,desc:`Strand aus OpenStreetMap.${surf}`,date:'OSM Live',src:'OpenStreetMap Contributors',meta:`OSM ${el.id}`,isSystem:true}),{maxWidth:230});
+      m.markType='beach';S.leafRefs.set('beach_'+el.id,m);cnt++;
+    });
+    showToast(cnt?`✅ ${cnt} Strände geladen`:'Keine Strände gefunden');
+    if(cnt)addFeed('beach',`${cnt} Strände geladen`,`OpenStreetMap · 80km Radius`);
+  }catch{showToast('⚠️ Overpass-API nicht erreichbar');}
+}
+
+/* ── STATS ── */
+function updateStats(){
+  const m=S.markers,t=m.length,p=m.filter(x=>x.type==='dirty').length,e=m.filter(x=>x.type==='event').length,c=m.filter(x=>x.type==='clean').length;
+  [['sN1',t,'rN1'],['sN2',p,'rN2'],['sN3',e,'rN3'],['sN4',c,'rN4']].forEach(([hId,v,rId])=>{animN(hId,v);animN(rId,v);});
+}
+function animN(id,target){const el=document.getElementById(id);if(!el)return;const from=parseInt(el.textContent)||0;if(from===target)return;const steps=18,diff=target-from;let i=0;const t=setInterval(()=>{i++;el.textContent=Math.round(from+diff*(i/steps));if(i>=steps)clearInterval(t);},22);}
+function animBars(){setTimeout(()=>{document.querySelectorAll('.ib-fill[data-w]').forEach(b=>{b.style.width=b.dataset.w+'%';});},600);}
+function updateRepList(){
+  const list=document.getElementById('repList'),empty=document.getElementById('repEmpty');
+  list.innerHTML='';
+  if(!S.markers.length){empty.style.display='block';return;}
+  empty.style.display='none';
+  const TC={dirty:{c:'var(--red)',bg:'rgba(248,113,113,.12)',l:'Verschmutzung'},event:{c:'var(--orange)',bg:'rgba(251,146,60,.12)',l:'Aktion'},clean:{c:'var(--green)',bg:'rgba(74,222,128,.09)',l:'Sauber'}};
+  [...S.markers].reverse().forEach(m=>{
+    const tc=TC[m.type]||{c:'var(--ocean)',bg:'rgba(56,189,248,.1)',l:m.type};
+    const el=document.createElement('div');el.className='ri';
+    el.innerHTML=`<div class="ri-ico" style="background:${tc.bg}"><svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="${tc.c}" stroke-width="1.8"><circle cx="10" cy="8" r="3"/><path d="M10 2a6 6 0 016 6c0 5-6 10-6 10S4 13 4 8a6 6 0 016-6z" stroke-linejoin="round"/></svg></div><div class="ri-info"><div class="ri-t">${m.title}</div><div class="ri-m">${m.date} · ${parseFloat(m.lat).toFixed(3)}, ${parseFloat(m.lng).toFixed(3)}</div><div class="ri-row"><span class="chip" style="background:${tc.bg};color:${tc.c}">${tc.l}</span><span class="chip chip-b">${m.severity||'medium'}</span></div></div><div class="ri-del" onclick="event.stopPropagation();delM('${m.id}')"><svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="var(--red)" stroke-width="1.6" stroke-linecap="round"><path d="M2.5 4.5h11M6 4.5V3h4v1.5M5.5 4.5l.5 9h4l.5-9"/></svg></div>`;
+    el.onclick=()=>{switchTab('map');setTimeout(()=>window._map.panTo([m.lat,m.lng]),280);};
+    list.appendChild(el);
+  });
+}
+
+/* ── FEED ── */
+function addFeed(type,title,meta){
+  const feed=document.getElementById('feed');
+  const now=new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+  const C={dirty:{bg:'rgba(248,113,113,.13)',ico:'⚠️'},event:{bg:'rgba(251,146,60,.12)',ico:'🧹'},clean:{bg:'rgba(74,222,128,.1)',ico:'✅'},beach:{bg:'rgba(56,189,248,.12)',ico:'🏖'},monitor:{bg:'rgba(167,139,250,.1)',ico:'📡'},weather:{bg:'rgba(6,214,160,.1)',ico:'🌤'},user:{bg:'rgba(6,214,160,.1)',ico:'📍'},system:{bg:'rgba(56,189,248,.1)',ico:'⚡'}};
+  const cf=C[type]||C.system;
+  if(feed.children.length===1&&feed.querySelector('.fi-t')?.textContent==='App gestartet')feed.innerHTML='';
+  const el=document.createElement('div');el.className='fi';
+  el.innerHTML=`<div class="fi-ico" style="background:${cf.bg}"><span style="font-size:17px">${cf.ico}</span></div><div class="fi-c"><div class="fi-t">${title}</div><div class="fi-m">${meta}</div><div class="fi-tm">${now}</div></div>`;
+  feed.insertBefore(el,feed.firstChild);
+  while(feed.children.length>8)feed.removeChild(feed.lastChild);
+}
+
+/* ── ACCORDION ── */
+function toggleAcc(el){const o=el.classList.contains('open');document.querySelectorAll('.acc.open').forEach(a=>{if(a!==el)a.classList.remove('open');});el.classList.toggle('open',!o);}
+
+/* ═══════════════════════════════════════════════════════════════
+   CHAT — Anthropic Claude API (direkt im Browser)
+   No local fallback. If API fails, shows a clear error message
+   with retry option. User sees exactly what went wrong.
+   ═══════════════════════════════════════════════════════════════ */
+async function sendChat(){
+  const inp=document.getElementById('cinp');
+  const msg=inp.value.trim();
+  if(!msg||S.aiLoading)return;
+  inp.value='';inp.style.height='auto';
+  appendMsg('user',msg);
+  S.chatHist.push({role:'user',content:msg});
+  S.aiLoading=true;
+  document.getElementById('sbtn').disabled=true;
+  setAiStatus('thinking','Denkt nach…');
+  showTyping();
+
+  try {
+    // Anthropic API Format: system ist ein top-level Parameter, nicht in messages
+    const messagesForApi = S.chatHist.slice(-16).map(m => ({
+      role: m.role,
+      content: m.content
+    }));
+
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: AI_MODEL,
+        system: AI_SYS,
+        messages: messagesForApi,
+        max_tokens: 1000,
+        temperature: 0.72
+      })
+    });
+
+    if (!resp.ok) {
+      let errDetail = '';
+      try { const ed = await resp.json(); errDetail = ed.error?.message || ed.message || ''; } catch(e) {}
+      throw new Error(`HTTP ${resp.status}${errDetail ? ': ' + errDetail : ''}`);
+    }
+
+    const data = await resp.json();
+    // Anthropic returns: data.content[0].text
+    const reply = data.content?.[0]?.text;
+
+    if (!reply) throw new Error('Leere Antwort vom Modell erhalten.');
+
+    hideTyping();
+    const formatted = reply
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+    appendMsg('ai', formatted, true);
+    S.chatHist.push({ role: 'assistant', content: reply });
+    if (S.chatHist.length > 24) S.chatHist = S.chatHist.slice(-20);
+    setAiStatus('online', 'Claude · Anthropic');
+
+  } catch(err) {
+    hideTyping();
+    console.error('[OceanGuardian AI]', err);
+
+    // Determine error type for user-friendly message
+    let errMsg = '';
+    const e = err.message || '';
+    if (e.includes('401') || e.includes('403') || e.includes('Unauthorized')) {
+      errMsg = '🔑 <strong>API-Schlüssel ungültig.</strong> Bitte den Administrator kontaktieren.';
+    } else if (e.includes('429') || e.includes('rate')) {
+      errMsg = '⏳ <strong>Zu viele Anfragen.</strong> Bitte kurz warten und es dann erneut versuchen.';
+    } else if (e.includes('500') || e.includes('502') || e.includes('503')) {
+      errMsg = '🔧 <strong>Anthropic API vorübergehend nicht erreichbar.</strong> Bitte in einigen Minuten erneut versuchen.';
+    } else if (e.includes('Failed to fetch') || e.includes('NetworkError')) {
+      errMsg = '🌐 <strong>Server nicht erreichbar.</strong> Bitte prüfe ob der OceanGuardian-Server läuft (node server.js).';
+    } else if (e.includes('CORS')) {
+      errMsg = '🌐 <strong>CORS-Fehler.</strong> Bitte die App über den Server aufrufen: http://168.119.139.61:40271';
+    } else {
+      errMsg = `⚠️ <strong>Verbindungsfehler:</strong> ${e}`;
+    }
+
+    const errorHtml = `<div class="ai-error-msg">
+      ${errMsg}
+      <div style="margin-top:10px">
+        <button class="ai-retry-btn" onclick="retryLastMsg()">
+          <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 8a6 6 0 106-6H5M5 2v3h3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Nochmals versuchen
+        </button>
+      </div>
+    </div>`;
+    appendMsg('ai', errorHtml, true);
+    setAiStatus('error', 'Verbindungsfehler');
+  }
+
+  S.aiLoading = false;
+  document.getElementById('sbtn').disabled = false;
+  goto_end();
+}
+
+/* Retry last user message */
+function retryLastMsg(){
+  // Find last user message in history
+  const lastUser = [...S.chatHist].reverse().find(m => m.role === 'user');
+  // Remove last two entries (user + error) from history to resend cleanly
+  if(S.chatHist.length >= 1) S.chatHist.pop();
+  if(lastUser){
+    document.getElementById('cinp').value = lastUser.content;
+    sendChat();
+  }
+}
+
+/* ── AI Status indicator ── */
+function setAiStatus(state, label){
+  const dot = document.getElementById('aiDot');
+  const lbl = document.getElementById('aiLbl');
+  const model = document.getElementById('aiModel');
+  if(state === 'online'){
+    dot.style.background = 'var(--green)';
+    dot.style.animation = 'lb-p 2.2s ease infinite';
+    lbl.textContent = '🟢 KI-Assistent aktiv';
+    model.textContent = label || 'Claude · Anthropic';
+  } else if(state === 'thinking'){
+    dot.style.background = 'var(--yellow)';
+    dot.style.animation = 'lb-p 0.8s ease infinite';
+    lbl.textContent = '⚡ ' + (label || 'Verarbeitet…');
+    model.textContent = 'Claude · Anthropic';
+  } else if(state === 'error'){
+    dot.style.background = 'var(--red)';
+    dot.style.animation = 'none';
+    lbl.textContent = '🔴 ' + (label || 'Fehler');
+    model.textContent = 'Offline';
+  } else {
+    dot.style.background = 'var(--teal)';
+    dot.style.animation = 'lb-p 2.2s ease infinite';
+    lbl.textContent = label || 'KI-Assistent bereit';
+    model.textContent = 'Claude · Anthropic';
+  }
+}
+
+function appendMsg(role, html, isHtml=false){
+  const wrap=document.getElementById('chatMsgs');
+  const time=new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+  const row=document.createElement('div');
+  row.className='mr '+(role==='user'?'me':'');
+  const avi=role==='user'
+    ?`<div class="mav mav-me"><svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="#fff" stroke-width="1.5"><circle cx="7" cy="4.5" r="2.5"/><path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5"/></svg></div>`
+    :`<div class="mav mav-ai"><svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="#fff" stroke-width="1.5"><path d="M7 1.5C4.5 1.5 2.5 3.5 2.5 6c0 1.2.5 2.3 1.2 3.1L3 12l2.3-.8C6 11.6 6.5 11.8 7 11.8c2.5 0 4.5-2 4.5-5.8s-2-4.5-4.5-4.5z"/><path d="M4.5 6h.01M7 6h.01M9.5 6h.01" stroke-width="2" stroke-linecap="round"/></svg></div>`;
+  const content = isHtml ? html : html.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  row.innerHTML=`${avi}<div class="mw"><div class="mb ${role==='user'?'mb-me':'mb-ai'}">${content}</div><div class="mt">${time}</div></div>`;
+  wrap.appendChild(row);
+  wrap.scrollTop=wrap.scrollHeight;
+}
+function showTyping(){const wrap=document.getElementById('chatMsgs');const row=document.createElement('div');row.id='trow';row.className='mr';row.innerHTML=`<div class="mav mav-ai" style="font-size:9px;color:#fff">AI</div><div class="mw"><div class="typing"><div class="td"></div><div class="td"></div><div class="td"></div></div></div>`;wrap.appendChild(row);wrap.scrollTop=wrap.scrollHeight;}
+function hideTyping(){document.getElementById('trow')?.remove();}
+function goto_end(){document.getElementById('chatMsgs').scrollTop=99999;}
+function sendSug(el){
+  const txt=el.textContent.replace(/^[🔬🐟🌊♻️🧬📍💡🏭]\s/,'').trim();
+  document.getElementById('cinp').value=txt;
+  sendChat();
+}
+function ck(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}
+function ri(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,90)+'px';}
+
+/* ── SHARE ── */
+function openShare(){
+  let ov=document.getElementById('shareSheet');if(ov)ov.remove();
+  const m=S.markers,total=m.length,plastic=m.filter(x=>x.type==='dirty').length,events=m.filter(x=>x.type==='event').length,clean=m.filter(x=>x.type==='clean').length;
+  const impact=total===0?'Starte heute – jede Meldung zählt!':total<5?'Guter Start! Du hilfst beim Kartieren.':total<15?'Aktiver Meereswächter 🎯':'OceanGuardian Champion 🏆';
+  const shareUrl='http://168.119.139.61:40271';
+  const shareText=`🌊 OceanGuardian – Mein Meeresschutz-Beitrag\n\n📍 ${total} Orte gemeldet | 🚨 ${plastic} Plastikfunde | 🧹 ${events} Aktionen | ✅ ${clean} Sauber-Zonen\n\n${impact}\n\nMach auch du mit! 👇\n${shareUrl}\n\n#OceanGuardian #Meeresschutz #PlastikfreieMeere`;
+  ov=document.createElement('div');ov.id='shareSheet';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(14px);z-index:900;display:flex;align-items:flex-end;';
+  ov.innerHTML=`<div id="shareInner" style="background:var(--bg2);border-radius:22px 22px 0 0;border:1px solid var(--bd2);width:100%;padding:18px;max-height:92dvh;overflow-y:auto;">
+    <div style="width:34px;height:4px;background:var(--bd2);border-radius:10px;margin:0 auto 16px"></div>
+    <div style="font-size:17px;font-weight:800;margin-bottom:4px;color:var(--t1)">Teile deine Erfolge</div>
+    <div style="font-size:12px;color:var(--t3);margin-bottom:14px">Als Bild oder Text teilen</div>
+    <div style="border-radius:16px;overflow:hidden;margin-bottom:14px;box-shadow:0 8px 32px rgba(0,0,0,0.35)"><canvas id="shareCanvas" style="width:100%;display:block"></canvas></div>
+    <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:14px;padding:12px 14px;margin-bottom:14px;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:7px">Text-Nachricht</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.65;white-space:pre-line">${shareText}</div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--bd);display:flex;align-items:center;gap:8px;">
+        <div style="flex:1;font-size:11px;font-weight:700;color:var(--ocean)">${shareUrl}</div>
+        <div onclick="copyText()" style="background:var(--card2);border:1px solid var(--bd2);border-radius:8px;padding:5px 11px;font-size:11px;font-weight:700;color:var(--t1);cursor:pointer">Kopieren</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px">
+      <button class="btn btn-pri btn-w" onclick="shareAsImage()" style="gap:8px;font-size:13px">📤 Bild teilen</button>
+      <button class="btn btn-sec btn-w" onclick="downloadImage()" style="gap:8px;font-size:13px">📥 Bild laden</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:9px">
+      <div onclick="doShare('whatsapp')" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 6px;border-radius:14px;background:#e7f9ee;border:1px solid rgba(37,211,102,.3);cursor:pointer;font-size:11px;font-weight:700;color:#128c42">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.113.549 4.099 1.51 5.824L.057 23.428l5.766-1.513A11.942 11.942 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.86 0-3.601-.5-5.1-1.37l-.364-.217-3.772.989 1.004-3.676-.237-.378A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>WhatsApp
+      </div>
+      <div onclick="doShare('twitter')" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 6px;border-radius:14px;background:#e8f4fd;border:1px solid rgba(29,161,242,.25);cursor:pointer;font-size:11px;font-weight:700;color:#0a6fa8">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="#1da1f2"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>Twitter/X
+      </div>
+      <div onclick="doShare('telegram')" style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 6px;border-radius:14px;background:#e8f4fc;border:1px solid rgba(0,136,204,.22);cursor:pointer;font-size:11px;font-weight:700;color:#006fa3">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="#0088cc"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.008 9.462c-.149.658-.537.818-1.088.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.215-3.053 5.566-5.023c.242-.215-.054-.333-.373-.118L6.33 14.473l-2.943-.919c-.64-.2-.652-.64.137-.948l11.49-4.43c.535-.194 1.003.13.548.072z"/></svg>Telegram
+      </div>
+    </div>
+    <button class="btn btn-sec btn-w" style="padding:12px" onclick="document.getElementById('shareSheet').remove()">Schließen</button>
+  </div>`;
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+  document.body.appendChild(ov);
+  const inner=document.getElementById('shareInner');
+  inner.style.cssText+=';transform:translateY(100%);transition:transform .32s cubic-bezier(.4,0,.2,1)';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{inner.style.transform='translateY(0)';}));
+  setTimeout(()=>drawShareCard(total,plastic,events,clean,impact,shareUrl),80);
+  window._shareTxt=shareText;window._shareUrl=shareUrl;
+}
+
+function drawShareCard(total,plastic,events,clean,impact,url){
+  const canvas=document.getElementById('shareCanvas');if(!canvas)return;
+  const DPR=window.devicePixelRatio||2,W=900,H=500;
+  canvas.width=W*DPR;canvas.height=H*DPR;canvas.style.width='100%';canvas.style.height='auto';
+  const c=canvas.getContext('2d');c.scale(DPR,DPR);
+  const bg=c.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#071830');bg.addColorStop(0.5,'#0d2440');bg.addColorStop(1,'#071828');c.fillStyle=bg;roundRect(c,0,0,W,H,0);c.fill();
+  c.save();c.globalAlpha=0.12;
+  for(let i=0;i<3;i++){const wg=c.createLinearGradient(0,0,W,0);wg.addColorStop(0,'#38bdf8');wg.addColorStop(1,'#06d6a0');c.fillStyle=wg;c.beginPath();const y=H-60+i*22;c.moveTo(0,y);for(let x=0;x<=W;x+=60){c.quadraticCurveTo(x+30,y+(i%2===0?-18:18),x+60,y);}c.lineTo(W,H);c.lineTo(0,H);c.closePath();c.fill();}
+  c.restore();
+  const bx=36,by=32,br=22;const grad=c.createLinearGradient(bx-br,by-br,bx+br,by+br);grad.addColorStop(0,'#0ea5e9');grad.addColorStop(1,'#06d6a0');c.fillStyle=grad;roundRect(c,bx-br,by-br,br*2,br*2,10);c.fill();
+  c.strokeStyle='#000';c.lineWidth=2.5;c.lineCap='round';
+  c.fillStyle='#f0f8ff';c.font='bold 22px sans-serif';c.textBaseline='middle';c.fillText('Ocean',bx+br+10,by-6);c.fillStyle='#06d6a0';c.fillText('Guardian',bx+br+10+c.measureText('Ocean').width+4,by-6);
+  c.fillStyle='rgba(148,184,204,0.7)';c.font='700 10px sans-serif';c.fillText('MEERESSCHUTZ AKTIV',bx+br+10,by+10);
+  c.fillStyle='rgba(90,127,150,0.8)';c.font='600 11px monospace';c.textAlign='right';c.fillText(new Date().toLocaleDateString('de-DE'),W-32,by);c.textAlign='left';
+  c.strokeStyle='rgba(100,180,230,0.12)';c.lineWidth=1;c.beginPath();c.moveTo(36,80);c.lineTo(W-36,80);c.stroke();
+  const stats=[{label:'Gesamt',val:total,color:'#38bdf8'},{label:'Plastikfunde',val:plastic,color:'#f87171'},{label:'Aktionen',val:events,color:'#fb923c'},{label:'Sauber-Zonen',val:clean,color:'#4ade80'}];
+  const boxW=180,boxH=130,boxGap=18,totalBoxW=stats.length*boxW+(stats.length-1)*boxGap;let bxOff=(W-totalBoxW)/2;
+  stats.forEach((st,i)=>{const bxL=bxOff+i*(boxW+boxGap),bxT=105;c.fillStyle='rgba(255,255,255,0.05)';roundRect(c,bxL,bxT,boxW,boxH,14);c.fill();c.fillStyle=st.color;roundRect(c,bxL,bxT,boxW,3,[3,3,0,0]);c.fill();c.fillStyle=st.color;c.font=`900 52px monospace`;c.textAlign='center';c.fillText(String(st.val),bxL+boxW/2,bxT+72);c.fillStyle='rgba(148,184,204,0.8)';c.font='600 11px sans-serif';c.fillText(st.label,bxL+boxW/2,bxT+100);c.textAlign='left';});
+  const impactY=260;c.fillStyle='rgba(6,214,160,0.08)';roundRect(c,36,impactY,W-72,58,14);c.fill();c.strokeStyle='rgba(6,214,160,0.2)';c.lineWidth=1;roundRect(c,36,impactY,W-72,58,14);c.stroke();
+  c.fillStyle='#06d6a0';c.font='700 11px sans-serif';c.fillText('🌍  Dein Beitrag',54,impactY+20);c.fillStyle='rgba(148,184,204,0.9)';c.font='600 13px sans-serif';c.fillText(impact,54,impactY+40);
+  const tags=['#OceanGuardian','#Meeresschutz','#PlastikfreieMeere'];let tx=36;const ty=345;
+  tags.forEach(tag=>{const tw=c.measureText(tag).width;c.fillStyle='rgba(56,189,248,0.1)';roundRect(c,tx,ty,tw+18,22,11);c.fill();c.strokeStyle='rgba(56,189,248,0.22)';c.lineWidth=1;roundRect(c,tx,ty,tw+18,22,11);c.stroke();c.fillStyle='#38bdf8';c.font='700 11px sans-serif';c.fillText(tag,tx+9,ty+14);tx+=tw+28;});
+  c.fillStyle='rgba(148,184,204,0.5)';c.font='600 12px monospace';c.textAlign='center';c.fillText(url,W/2,H-54);
+  c.fillStyle='rgba(255,255,255,0.12)';roundRect(c,W/2-120,H-45,240,28,8);c.fill();c.fillStyle='rgba(148,184,204,0.7)';c.font='700 11px sans-serif';c.fillText('Kostenlos mitmachen & Meere retten 🌊',W/2,H-28);c.textAlign='left';
+  window._shareCanvas=canvas;
+}
+function roundRect(ctx,x,y,w,h,r){if(typeof r==='number')r=[r,r,r,r];ctx.beginPath();ctx.moveTo(x+r[0],y);ctx.lineTo(x+w-r[1],y);ctx.quadraticCurveTo(x+w,y,x+w,y+r[1]);ctx.lineTo(x+w,y+h-r[2]);ctx.quadraticCurveTo(x+w,y+h,x+w-r[2],y+h);ctx.lineTo(x+r[3],y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r[3]);ctx.lineTo(x,y+r[0]);ctx.quadraticCurveTo(x,y,x+r[0],y);ctx.closePath();}
+async function shareAsImage(){const canvas=window._shareCanvas;if(!canvas){showToast('Bild wird gerendert…');return;}canvas.toBlob(async(blob)=>{const file=new File([blob],'oceanguardian.png',{type:'image/png'});if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:'OceanGuardian',text:window._shareTxt||''});}catch(e){if(e.name!=='AbortError')downloadImage();}}else{downloadImage();}}, 'image/png');}
+function downloadImage(){const canvas=window._shareCanvas;if(!canvas){showToast('Kein Bild');return;}const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='oceanguardian-share.png';a.click();showToast('📥 Bild gespeichert!');}
+function copyText(){const txt=(window._shareTxt||'')+'\n'+(window._shareUrl||'');navigator.clipboard?.writeText(txt).then(()=>showToast('📋 Text & Link kopiert!')).catch(()=>showToast('Kopieren nicht verfügbar'));}
+function doShare(method){const txt=(window._shareTxt||''),url=window._shareUrl||location.href;if(method==='whatsapp')window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`,'_blank');else if(method==='twitter')window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}`,'_blank');else if(method==='telegram')window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(txt)}`,'_blank');}
+
+/* ── TOAST ── */
+let _tt;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('on'),2700);}
+</script>
+</body>
+</html>
